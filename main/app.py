@@ -1,9 +1,12 @@
-from flask import Flask
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from os import environ
+from flask import flash
+import hashlib
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
+app.config['SECRET_KEY'] = 'top-secret!'
 db = SQLAlchemy(app)
 
 class Korisnik(db.Model):
@@ -46,15 +49,80 @@ class Stol(db.Model):
     broj_mjesta = db.Column(db.Integer, nullable=False)
     prostorija_id = db.Column(db.Integer, db.ForeignKey('prostorija.id'), nullable=False)
     prostorija = db.relationship('Prostorija', backref=db.backref('stolovi', lazy=True))
-  
-
+ 
 
 @app.route('/')
 def home():
-    return 'Hello, World!'
+    return render_template("homepage.html")
+
+@app.route('/register', methods=['POST', 'GET'])
+def register():
+    if request.method == 'POST':
+        data = request.form
+        email = data.get('email')
+        password = data.get('password')
+        confirm_password = data.get('confirm-password')  # This should match the name attribute in the form
+        user_type_id = data.get('user_type')
+
+        if not email or not password or not confirm_password or not user_type_id:
+            return 'Email, password, confirm password, and user type are required!', 400
+
+        if password != confirm_password:
+            return 'Passwords do not match!', 400
+
+        existing_user = Korisnik.query.filter_by(email=email).first()
+        if existing_user:
+            return 'User already exists!', 409
+
+        # Hash the password before storing it in the database
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+        # Create a new user
+        new_user = Korisnik(email=email, password=hashed_password, tip_korisnika_id=user_type_id)
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash("Succefully registered!")
+        return redirect(url_for("home")), 201
+
+    tip_korisnici = TipKorisnika.query.all()
+    return render_template('register.html', tip_korisnici=tip_korisnici)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        data = request.form
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return 'Email and password are required!', 400
+
+        # Retrieve the user from the database based on the provided email
+        user = Korisnik.query.filter_by(email=email).first()
+
+        if not user:
+            return 'User does not exist!', 404
+
+        # Check if the provided password matches the stored password
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        if hashed_password != user.password:
+            return 'Invalid email or password!', 401
+
+        return redirect(url_for("home")), 201
+
+    # If GET request, render the login form
+    return render_template('login.html')
+
 
 if __name__ == '__main__':
     with app.app_context():
         db.drop_all()
         db.create_all()
+        tip_guest = TipKorisnika(naziv_tipa_korisnika='Guest')
+        tip_restaurant_owner = TipKorisnika(naziv_tipa_korisnika='Restaurant Owner')
+
+        db.session.add_all([tip_guest, tip_restaurant_owner])
+        db.session.commit()
     app.run(debug=True, host='0.0.0.0', port=4000)

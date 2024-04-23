@@ -1,0 +1,98 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+	background: linear-gradient(white, skyblue);
+
+}
+
+.form-container {
+    width: 100%;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.form-container form {
+    width: 100%; 
+}
+
+.form-container label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.form-container input[type="text"],
+.form-container input[type="email"],
+.form-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; 
+}
+
+.form-container select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+	background-color:  #C5C5C5;
+	font-family: 'Milonga', cursive;
+}
+
+.form-container button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #00008B;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+	font-family: 'Milonga', cursive;
+}
+
+.register-container {
+    width: 100%;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+
+.register-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #00008B; 
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+	font-family: 'Milonga', cursive;
+    margin-top: 20px;
+
+}
+
+::placeholder {
+    font-family: 'Milonga', cursive;
+}
+
+
+
+
+@media screen and (min-width: 768px) {
+	.container {
+		max-width: 100%;
+	}
+   
+}
+
+@media screen and (min-width: 992px) {
+	.container {
+		max-width: 100%;
+	}
+}
