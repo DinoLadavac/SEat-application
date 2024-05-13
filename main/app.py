@@ -29,13 +29,14 @@ class RadnoVrijeme(db.Model):
     pocetak_radnog_vremena = db.Column(db.Time, nullable=False)
     kraj_radnog_vremena = db.Column(db.Time, nullable=False)
     restoran_id = db.Column(db.String(12), db.ForeignKey('restoran.id'), nullable=False)
-    dan_id = db.Column(db.Integer, db.ForeignKey('dan.id'), nullable=False)
+    dan_id = db.Column(db.Integer, db.ForeignKey('datum.id'), nullable=False)
     restoran = db.relationship('Restoran', backref=db.backref('radna_vremena', lazy=True))
-    dan = db.relationship('Dan', backref=db.backref('radna_vremena', lazy=True))
+    dan = db.relationship('Datum', backref=db.backref('radna_vremena', lazy=True))
 
-class Dan(db.Model):
+class Datum(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     naziv_dana = db.Column(db.String(20), nullable=False)
+    datum_dana = db.Column(db.Date, nullable=False)
 
 class Prostorija(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,6 +50,17 @@ class Stol(db.Model):
     broj_mjesta = db.Column(db.Integer, nullable=False)
     prostorija_id = db.Column(db.Integer, db.ForeignKey('prostorija.id'), nullable=False)
     prostorija = db.relationship('Prostorija', backref=db.backref('stolovi', lazy=True))
+
+class Rezervacija(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    korisnik_id = db.Column(db.Integer, db.ForeignKey('korisnik.id'), nullable=False)
+    stol_id = db.Column(db.Integer, db.ForeignKey('stol.id'), nullable=False)
+    datum_id = db.Column(db.Integer, db.ForeignKey('datum.id'), nullable=False)
+    vrijeme_rezervacije = db.Column(db.Time, nullable=False)
+    trajanje_rezervacije = db.Column(db.Interval, nullable=False)
+    korisnik = db.relationship('Korisnik', backref=db.backref('rezervacije', lazy=True))
+    stol = db.relationship('Stol', backref=db.backref('rezervacije', lazy=True))
+    datum = db.relationship('Datum', backref=db.backref('rezervacije', lazy=True))
  
 
 @app.route('/')
@@ -73,17 +85,17 @@ def register():
         existing_user = Korisnik.query.filter_by(email=email).first()
         if existing_user:
             return 'User already exists!', 409
+        else:
+            # Hash the password before storing it in the database
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-        # Hash the password before storing it in the database
-        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            # Create a new user
+            new_user = Korisnik(email=email, password=hashed_password, tip_korisnika_id=user_type_id)
+            db.session.add(new_user)
+            db.session.commit()
 
-        # Create a new user
-        new_user = Korisnik(email=email, password=hashed_password, tip_korisnika_id=user_type_id)
-        db.session.add(new_user)
-        db.session.commit()
-
-        flash("Succefully registered!")
-        return redirect(url_for("home")), 201
+            flash("Succefully registered!")
+            return redirect(url_for("home"))
 
     tip_korisnici = TipKorisnika.query.all()
     return render_template('register.html', tip_korisnici=tip_korisnici)
@@ -104,13 +116,13 @@ def login():
 
         if not user:
             return 'User does not exist!', 404
+        else:
+            # Check if the provided password matches the stored password
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            if hashed_password != user.password:
+                return 'Invalid email or password!', 401
 
-        # Check if the provided password matches the stored password
-        hashed_password = hashlib.sha256(password.encode()).hexdigest()
-        if hashed_password != user.password:
-            return 'Invalid email or password!', 401
-
-        return redirect(url_for("home")), 201
+            return redirect(url_for("home"))
 
     # If GET request, render the login form
     return render_template('login.html')
