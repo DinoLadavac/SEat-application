@@ -3,11 +3,14 @@ from flask_sqlalchemy import SQLAlchemy
 from os import environ
 from flask import flash
 import hashlib
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
 app.config['SECRET_KEY'] = 'top-secret!'
 db = SQLAlchemy(app)
+admin = Admin(app, name='Admin', template_mode='bootstrap3')
 
 class Korisnik(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,6 +64,17 @@ class Rezervacija(db.Model):
     korisnik = db.relationship('Korisnik', backref=db.backref('rezervacije', lazy=True))
     stol = db.relationship('Stol', backref=db.backref('rezervacije', lazy=True))
     datum = db.relationship('Datum', backref=db.backref('rezervacije', lazy=True))
+
+# Add views
+admin.add_view(ModelView(Korisnik, db.session))
+admin.add_view(ModelView(TipKorisnika, db.session))
+admin.add_view(ModelView(Restoran, db.session))
+admin.add_view(ModelView(RadnoVrijeme, db.session))
+admin.add_view(ModelView(Datum, db.session))
+admin.add_view(ModelView(Prostorija, db.session))
+admin.add_view(ModelView(Stol, db.session))
+admin.add_view(ModelView(Rezervacija, db.session))
+
  
 
 @app.route('/')
