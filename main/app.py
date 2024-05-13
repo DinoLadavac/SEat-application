@@ -5,6 +5,14 @@ from flask import flash
 import hashlib
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from flask_wtf import FlaskForm
+from wtforms_sqlalchemy.fields import QuerySelectField
+from wtforms import StringField, TimeField, PasswordField, IntegerField, SubmitField
+from wtforms.validators import DataRequired
+from wtforms.widgets import TextInput
+from wtforms.validators import ValidationError
+from datetime import timedelta
+from wtforms import Field
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
@@ -24,14 +32,14 @@ class TipKorisnika(db.Model):
     naziv_tipa_korisnika = db.Column(db.String(50), nullable=False)
 
 class Restoran(db.Model):
-    id = db.Column(db.String(12), primary_key=True)  # OIB
+    id = db.Column(db.Integer, primary_key=True)
     naziv_restorana = db.Column(db.String(100), nullable=False)
 
 class RadnoVrijeme(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pocetak_radnog_vremena = db.Column(db.Time, nullable=False)
     kraj_radnog_vremena = db.Column(db.Time, nullable=False)
-    restoran_id = db.Column(db.String(12), db.ForeignKey('restoran.id'), nullable=False)
+    restoran_id = db.Column(db.Integer, db.ForeignKey('restoran.id'), nullable=False)
     dan_id = db.Column(db.Integer, db.ForeignKey('datum.id'), nullable=False)
     restoran = db.relationship('Restoran', backref=db.backref('radna_vremena', lazy=True))
     dan = db.relationship('Datum', backref=db.backref('radna_vremena', lazy=True))
@@ -44,7 +52,7 @@ class Datum(db.Model):
 class Prostorija(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     naziv_prostorije = db.Column(db.String(100), nullable=False)
-    restoran_id = db.Column(db.String(12), db.ForeignKey('restoran.id'), nullable=False)
+    restoran_id = db.Column(db.Integer, db.ForeignKey('restoran.id'), nullable=False)
     restoran = db.relationship('Restoran', backref=db.backref('prostorije', lazy=True))
 
 class Stol(db.Model):
@@ -65,15 +73,101 @@ class Rezervacija(db.Model):
     stol = db.relationship('Stol', backref=db.backref('rezervacije', lazy=True))
     datum = db.relationship('Datum', backref=db.backref('rezervacije', lazy=True))
 
+class KorisnikForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    tip_korisnika = QuerySelectField('Tip Korisnika', query_factory=lambda: TipKorisnika.query.all(), get_label='naziv_tipa_korisnika')
+
+# Custom Admin View for Korisnik
+class KorisnikAdmin(ModelView):
+    form = KorisnikForm
+
+    def on_model_change(self, form, model, is_created):
+        model.tip_korisnika_id = form.tip_korisnika.data.id
+
+
+class RadnoVrijemeForm(FlaskForm):
+    pocetak_radnog_vremena = TimeField('Početak Radnog Vremena', validators=[DataRequired()])
+    kraj_radnog_vremena = TimeField('Kraj Radnog Vremena', validators=[DataRequired()])
+    restoran = QuerySelectField('Restoran', query_factory=lambda: Restoran.query.all(), get_label='naziv_restorana')
+    dan = QuerySelectField('Dan', query_factory=lambda: Datum.query.all(), get_label='naziv_dana')
+
+
+# Custom Admin View for RadnoVrijeme
+class RadnoVrijemeAdmin(ModelView):
+    form = RadnoVrijemeForm
+
+    def on_model_change(self, form, model, is_created):
+        model.restoran_id = form.restoran.data.id
+        model.dan_id = form.dan.data.id
+
+class ProstorijaForm(FlaskForm):
+    naziv_prostorije = StringField('Naziv Prostorije', validators=[DataRequired()])
+    restoran = QuerySelectField('Restoran', query_factory=lambda: Restoran.query.all(), get_label='naziv_restorana')
+
+# Custom Admin View for Prostorija
+class ProstorijaAdmin(ModelView):
+    form = ProstorijaForm
+
+    def on_model_change(self, form, model, is_created):
+        model.restoran_id = form.restoran.data.id
+
+class StolForm(FlaskForm):
+    broj_stola = IntegerField('Broj Stola', validators=[DataRequired()])
+    broj_mjesta = IntegerField('Broj Mjesta', validators=[DataRequired()])
+    prostorija = QuerySelectField('Prostorija', query_factory=lambda: Prostorija.query.all(), get_label='naziv_prostorije')
+
+# Custom Admin View for Stol
+class StolAdmin(ModelView):
+    form = StolForm
+
+    def on_model_change(self, form, model, is_created):
+        model.prostorija_id = form.prostorija.data.id
+
+class TimeDeltaField(Field):
+    widget = TextInput()
+
+    def _value(self):
+        if self.data:
+            return str(self.data)
+        else:
+            return '0:00:00'
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            try:
+                h, m, s = map(int, valuelist[0].split(':'))
+                self.data = timedelta(hours=h, minutes=m, seconds=s)
+            except ValueError:
+                self.data = None
+                raise ValidationError('Invalid time delta format')
+            
+class RezervacijaForm(FlaskForm):
+    korisnik = QuerySelectField('Korisnik', query_factory=lambda: Korisnik.query.all(), get_label='email')
+    stol = QuerySelectField('Stol', query_factory=lambda: Stol.query.all(), get_label='broj_stola')
+    datum = QuerySelectField('Datum', query_factory=lambda: Datum.query.all(), get_label='naziv_dana')
+    vrijeme_rezervacije = TimeField('Vrijeme Rezervacije', validators=[DataRequired()])
+    trajanje_rezervacije = TimeDeltaField('Trajanje Rezervacije', validators=[DataRequired()])
+
+# Custom Admin View for Rezervacija
+class RezervacijaAdmin(ModelView):
+    form = RezervacijaForm
+
+    def on_model_change(self, form, model, is_created):
+        model.korisnik_id = form.korisnik.data.id
+        model.stol_id = form.stol.data.id
+        model.datum_id = form.datum.data.id
+
+
 # Add views
-admin.add_view(ModelView(Korisnik, db.session))
+admin.add_view(KorisnikAdmin(Korisnik, db.session))
 admin.add_view(ModelView(TipKorisnika, db.session))
 admin.add_view(ModelView(Restoran, db.session))
-admin.add_view(ModelView(RadnoVrijeme, db.session))
+admin.add_view(RadnoVrijemeAdmin(RadnoVrijeme, db.session))
 admin.add_view(ModelView(Datum, db.session))
-admin.add_view(ModelView(Prostorija, db.session))
-admin.add_view(ModelView(Stol, db.session))
-admin.add_view(ModelView(Rezervacija, db.session))
+admin.add_view(ProstorijaAdmin(Prostorija, db.session))
+admin.add_view(StolAdmin(Stol, db.session))
+admin.add_view(RezervacijaAdmin(Rezervacija, db.session))
 
  
 
