@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from os import environ
 from flask import flash
@@ -65,67 +65,67 @@ class Rezervacija(db.Model):
 
 @app.route('/')
 def home():
-    return render_template("homepage.html")
+    default_content = render_template('homepage.html')
+    return render_template('base.html', content = default_content)
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
+    error = None
     if request.method == 'POST':
         data = request.form
         email = data.get('email')
         password = data.get('password')
-        confirm_password = data.get('confirm-password')  # This should match the name attribute in the form
+        confirm_password = data.get('confirm-password')
         user_type_id = data.get('user_type')
 
         if not email or not password or not confirm_password or not user_type_id:
-            return 'Email, password, confirm password, and user type are required!', 400
+            error = 'Email, password, confirm password, and user type are required!'
 
-        if password != confirm_password:
-            return 'Passwords do not match!', 400
+        elif password != confirm_password:
+            error = 'Passwords do not match!'
 
-        existing_user = Korisnik.query.filter_by(email=email).first()
-        if existing_user:
-            return 'User already exists!', 409
         else:
-            # Hash the password before storing it in the database
-            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            existing_user = Korisnik.query.filter_by(email=email).first()
+            if existing_user:
+                error = 'User already exists!'
+            else:
+                hashed_password = hashlib.sha256(password.encode()).hexdigest()
+                new_user = Korisnik(email=email, password=hashed_password, tip_korisnika_id=user_type_id)
+                db.session.add(new_user)
+                db.session.commit()
 
-            # Create a new user
-            new_user = Korisnik(email=email, password=hashed_password, tip_korisnika_id=user_type_id)
-            db.session.add(new_user)
-            db.session.commit()
-
-            flash("Succefully registered!")
-            return redirect(url_for("home"))
+                flash("Successfully registered!")
+                return redirect(url_for("home"))  # Redirect only on successful registration
 
     tip_korisnici = TipKorisnika.query.all()
-    return render_template('register.html', tip_korisnici=tip_korisnici)
+    return render_template('register.html', tip_korisnici=tip_korisnici, error=error)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
         data = request.form
         email = data.get('email')
         password = data.get('password')
 
         if not email or not password:
-            return 'Email and password are required!', 400
+            error = 'Email and password are required!'
 
-        # Retrieve the user from the database based on the provided email
-        user = Korisnik.query.filter_by(email=email).first()
-
-        if not user:
-            return 'User does not exist!', 404
         else:
-            # Check if the provided password matches the stored password
-            hashed_password = hashlib.sha256(password.encode()).hexdigest()
-            if hashed_password != user.password:
-                return 'Invalid email or password!', 401
+            user = Korisnik.query.filter_by(email=email).first()
+            if not user:
+                error = 'User does not exist!'
+            else:
+                hashed_password = hashlib.sha256(password.encode()).hexdigest()
+                if hashed_password != user.password:
+                    error = 'Invalid email or password!'
 
-            return redirect(url_for("home"))
+                else:
+                    session['logged_in'] = True
+                    return redirect(url_for("home"))  # Redirect only on successful login
 
-    # If GET request, render the login form
-    return render_template('login.html')
+    return render_template('login.html', error=error)
 
 
 if __name__ == '__main__':

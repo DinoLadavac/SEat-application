@@ -1,3 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
-<p>Hello world!</p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <style>
+        /* Add your custom CSS styles here */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .logo {
+            margin-bottom: 20px;
+        }
+
+        form {
+            margin-bottom: 10px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .toolbar button {
+            padding: 10px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .toolbar button:hover {
+            background-color: #0056b3;
+        }
+
+        .table-arrangement {
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Logo -->
+    <img src="{{ url_for('static', filename = 'images/Logo.png') }}" alt="Logo" width="100px" height="100px" class="logo">
+    
+    <!-- Header Buttons -->
+    <div class="header-buttons">
+        <a href="/register"><button>Register</button></a>
+        <a href="/login"><button>Login</button></a>
+    </div>
+    
+    <!-- Date and Time Forms -->
+    <form id="datetime-form">
+        Date: <input type="date" name="date" id="date">
+        <br>
+        Time: <input type="time" name="time" id="time">
+        <br>
+    </form>
+    
+    <!-- Toolbar with Buttons -->
+    <div class="toolbar">
+        <button>&#9664;</button> <!-- Unicode for left arrow -->
+        <h2>Prostorija</h2> <!-- Adjust with the actual name -->
+        <button>&#9654;</button> <!-- Unicode for right arrow -->
+    </div>
+    
+    <!-- Table Arrangements -->
+    <div class="table-arrangement">
+        <!-- Display table arrangements here -->
+        <!-- You can use Flask to dynamically generate the table arrangements -->
+    </div>
+
+    <script>
+        // Submit the form when date or time input fields change
+        document.getElementById("date").addEventListener("change", function() {
+            document.getElementById("datetime-form").submit();
+        });
+
+        document.getElementById("time").addEventListener("change", function() {
+            document.getElementById("datetime-form").submit();
+        });
+            // Function to get URL parameters
+    // Function to get URL parameters
+
+    function getUrlParameter(name) {
+            name = name.replace(/[[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        };
+    
+        // Get the current date and time
+        var currentDate = new Date();
+        var currentHour = currentDate.getHours()+1;
+        var currentMinute = currentDate.getMinutes();
+    
+        // Get the date and time parameters from the URL
+        var dateParam = getUrlParameter('date');
+        var timeParam = getUrlParameter('time');
+    
+        // Calculate the default date (today's date) if date parameter is not present
+        if (!dateParam) {
+            var year = currentDate.getFullYear();
+            var month = ('0' + (currentDate.getMonth() + 1)).slice(-2); // Add 1 to month because January is 0
+            var day = ('0' + currentDate.getDate()).slice(-2);
+            var defaultDate = year + '-' + month + '-' + day;
+        }
+    
+        // Set the default time (next full hour) if time parameter is not present
+        var defaultHour;
+        if (!timeParam) {
+            if (currentMinute >= 30) {
+                defaultHour = ('0' + (currentHour + 1)).slice(-2);
+            } else {
+                defaultHour = ('0' + currentHour).slice(-2);
+            }
+            var defaultTime = defaultHour + ':00'; 
+        }
+    
+        // Set the values of the date and time input fields
+        document.getElementById("date").value = dateParam || defaultDate;
+        document.getElementById("time").value = timeParam || defaultTime;
+    
+        // Generate time options with 30-minute intervals
+        var timeSelect = document.getElementById("time");
+        for (var hour = 0; hour < 24; hour++) {
+            for (var minute = 0; minute < 60; minute += 30) {
+                if (minute === 0 || minute === 30) {
+                    var option = document.createElement("option");
+                    var timeString = ("0" + hour).slice(-2) + ":" + ("0" + minute).slice(-2);
+                    option.text = timeString;
+                    option.value = timeString;
+                    timeSelect.add(option);
+                }
+            }
+        }
+    
+        // Submit the form when date or time input fields change
+        document.getElementById("date").addEventListener("change", function() {
+            document.getElementById("datetime-form").submit();
+        });
+    
+        document.getElementById("time").addEventListener("change", function() {
+            document.getElementById("datetime-form").submit();
+        });
+    </script>
+</body>
+</html>
