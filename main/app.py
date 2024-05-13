@@ -65,7 +65,8 @@ class Rezervacija(db.Model):
 
 @app.route('/')
 def home():
-    return render_template("homepage.html")
+        default_content = render_template('partials/homepage.html')
+        return render_template('base.html', content = default_content)
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():

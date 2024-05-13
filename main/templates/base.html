@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Health Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://unpkg.com/htmx.org" defer></script>
+</head>
+<body>
+    <main id="content">
+        {% block content %}
+           {{ content|safe }}
+        <!-- The content from child templates will be injected here -->
+        {% endblock %}
+    </main>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('.datepicker').datepicker({
+            dateFormat: 'dd-mm-yy'
+        });
+    });
+    </script>
+
+</body>
+</html>
