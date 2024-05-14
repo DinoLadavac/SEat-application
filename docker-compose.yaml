@@ -16,12 +16,14 @@ services:
   flask_app:
     container_name: flask_app
     build: ./main
-    ports:
+    ports: 
       - "4000:4000"
     environment:
       - DB_URL=postgresql://postgres:postgres@postgres_db:5432/postgres
     depends_on:
       - postgres_db
+    volumes: 
+      - ./main:/app
 
 volumes:
   pgdata:
