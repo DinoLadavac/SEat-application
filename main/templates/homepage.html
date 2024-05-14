@@ -10,6 +10,7 @@
 </head>
 
 <body>
+    <div class="grid-container">
     <div class="logo">
         <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Slika Loga">
     </div>
@@ -31,7 +32,6 @@
             </form>
         </div>
         {% endif %}
-        <div class="grid-container">
         <div class="date-time-container">
             <form id="datetime-form" action="/" method="get">
                 <input type="hidden" name="current_prostorija_id" value="{{ current_prostorija_id }}">
