@@ -2,86 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
+    <link href='https://fonts.googleapis.com/css?family=Milonga' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/izbornik.js' ) }}" defer></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage</title>
-    <style>
-        /* Add your custom CSS styles here */
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .logo {
-            margin-bottom: 20px;
-        }
-
-        form {
-            margin-bottom: 10px;
-        }
-
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .toolbar button {
-            padding: 10px;
-            border: none;
-            background-color: #007bff;
-            color: #fff;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .toolbar button:hover {
-            background-color: #0056b3;
-        }
-
-        .table-arrangement {
-            border: 1px solid #ccc;
-            padding: 20px;
-            width: 100%;
-            max-width: 500px;
-        }
-    </style>
 </head>
+
 <body>
-    <!-- Logo -->
-    <img src="{{ url_for('static', filename = 'images/Logo.png') }}" alt="Logo" width="100px" height="100px" class="logo">
-    
-    <!-- Header Buttons -->
-    <div class="header-buttons">
-        <a href="/register"><button>Register</button></a>
-        <a href="/login"><button>Login</button></a>
-    </div>
-    
-    <!-- Date and Time Forms -->
-    <form id="datetime-form">
-        Date: <input type="date" name="date" id="date">
-        <br>
-        Time: <input type="time" name="time" id="time">
-        <br>
-    </form>
-    
-    <!-- Toolbar with Buttons -->
-    <div class="toolbar">
-        <button>&#9664;</button> <!-- Unicode for left arrow -->
-        <h2>Prostorija</h2> <!-- Adjust with the actual name -->
-        <button>&#9654;</button> <!-- Unicode for right arrow -->
-    </div>
-    
-    <!-- Table Arrangements -->
-    <div class="table-arrangement">
-        <!-- Display table arrangements here -->
-        <!-- You can use Flask to dynamically generate the table arrangements -->
+    <div class="grid-container">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Slika Loga">
+        </div>
+        {% if session['logged_in'] %}
+        <div class="icons">
+            <form action="/logout" method="POST">
+                <button type="submit" class="button_tool">Logout</button>
+            </form>
+            <a href="/mail"><img src="{{ url_for('static', filename = 'images/mail-outline.svg') }}" alt="Icon 1"></a>
+            <a href="/profile"><img src="{{ url_for('static', filename = 'images/profilna.svg') }}" alt="Icon 2"></a>
+        </div>
+        {% else %}
+        <div class="icons">
+            <form action="/register">
+                <button class="button_tool">Register</button>
+            </form>
+            <form action="/login">
+                <button class="button_tool">Log in</button>
+            </form>
+        </div>
+        {% endif %}
+        <div class="date-time-container">
+            <form id="datetime-form" action="/" method="get">
+                <label for="datum"  style="color: #00008B ; font-family: 'Milonga', cursive;  display: inline-block;">Date:</label>
+                <input type="date" name="date" id="date"><br>
+                <label for="vrijeme"  style="color: #00008B ; font-family: 'Milonga', cursive; display: inline-block;">Time:</label>
+                <input  type="time" name="time" id="time">
+            </form>
+        </div>
+        <div class="izbornik">
+            <button class="prevButton" hx-get="/prev" method="post">&lt; </button>
+            <span class="option-label" id="prostorijaLabel" style="color: black; font-family: 'Milonga', cursive;">{{ prev_prostorija }}</span>
+            <button class="nextButton" hx-get="/next" method="post"> &gt;</button>
+        </div>
+        <div class="table-background">
+            <div class="table-container">
+                <div class="table-reservation">
+                    <div class="table">
+                        <div class="tooltip">
+                            <span class="tooltip-text">Reserve this table?</span>
+                            <button class="reserve-button" hx-post="/reserve" hx-target="#reservation-status">Reserve</button>
+                        </div>
+                    </div>
+                    <div class="table"></div>
+                    <div class="table"></div>
+                    <div class="table"></div>
+                    <div class="table"></div>
+                    <div class="table"></div>
+                    <div class="table"></div>
+                    <div class="table"></div>
+                    <div class="table"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>

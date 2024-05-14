@@ -108,7 +108,6 @@ class ProstorijaForm(FlaskForm):
 # Custom Admin View for Prostorija
 class ProstorijaAdmin(ModelView):
     form = ProstorijaForm
-
     def on_model_change(self, form, model, is_created):
         model.restoran_id = form.restoran.data.id
 
@@ -169,11 +168,12 @@ admin.add_view(ProstorijaAdmin(Prostorija, db.session))
 admin.add_view(StolAdmin(Stol, db.session))
 admin.add_view(RezervacijaAdmin(Rezervacija, db.session))
 
- 
+
 
 @app.route('/')
 def home():
-    return render_template("homepage.html")
+    prev_prostorija = Prostorija.query.first().naziv_prostorije
+    return render_template("homepage.html", prev_prostorija=prev_prostorija)
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -201,8 +201,8 @@ def register():
                 db.session.add(new_user)
                 db.session.commit()
 
-                flash("Successfully registered!")
-                return redirect(url_for("home"))  # Redirect only on successful registration
+                session['logged_in'] = True
+                return redirect(url_for("home"))
 
     tip_korisnici = TipKorisnika.query.all()
     return render_template('register.html', tip_korisnici=tip_korisnici, error=error)
@@ -218,7 +218,6 @@ def login():
 
         if not email or not password:
             error = 'Email and password are required!'
-
         else:
             user = Korisnik.query.filter_by(email=email).first()
             if not user:
@@ -227,13 +226,44 @@ def login():
                 hashed_password = hashlib.sha256(password.encode()).hexdigest()
                 if hashed_password != user.password:
                     error = 'Invalid email or password!'
-
                 else:
                     session['logged_in'] = True
-                    return redirect(url_for("home"))  # Redirect only on successful login
+                    return redirect(url_for("home"))
 
     return render_template('login.html', error=error)
 
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.pop('logged_in', None)
+    flash("You have been logged out.")
+    return redirect(url_for('home'))
+
+@app.route('/next')
+def next_prostorija():
+    next_prostorija_id = current_prostorija_id + 1
+    # Fetch the prostorija with the next ID from the database
+    next_prostorija = Prostorija.query.get(next_prostorija_id)
+    if next_prostorija:
+        # If the next prostorija exists, update current_prostorija_id
+        current_prostorija_id = next_prostorija_id
+        return jsonify({'naziv_prostorije': next_prostorija.naziv_prostorije})
+    else:
+        # Handle if there is no next prostorija (end of the list, for example)
+        return jsonify({'error': 'No next prostorija found'})
+
+@app.route('/prev')
+def prev_prostorija():
+    next_prostorija_id = current_prostorija_id - 1
+    # Fetch the prostorija with the next ID from the database
+    next_prostorija = Prostorija.query.get(next_prostorija_id)
+    if next_prostorija:
+        # If the next prostorija exists, update current_prostorija_id
+        current_prostorija_id = next_prostorija_id
+        return jsonify({'naziv_prostorije': next_prostorija.naziv_prostorije})
+    else:
+        # Handle if there is no next prostorija (end of the list, for example)
+        return jsonify({'error': 'No next prostorija found'})
+    
 
 if __name__ == '__main__':
     with app.app_context():
@@ -241,6 +271,17 @@ if __name__ == '__main__':
         db.create_all()
         tip_guest = TipKorisnika(naziv_tipa_korisnika='Guest')
         tip_restaurant_owner = TipKorisnika(naziv_tipa_korisnika='Restaurant Owner')
+
+        # Create instances of Restoran
+        restoran = Restoran(naziv_restorana='The Fiume')
+        db.session.add_all([tip_guest, tip_restaurant_owner, restoran])
+        db.session.commit()
+
+        # Create instances of Prostorija
+        prostorija1 = Prostorija(naziv_prostorije='Ulaz', restoran_id=restoran.id)
+        prostorija2 = Prostorija(naziv_prostorije='Prostorija za ručak', restoran_id=restoran.id)
+        db.session.add_all([prostorija1, prostorija2])
+        db.session.commit()
 
         db.session.add_all([tip_guest, tip_restaurant_owner])
         db.session.commit()
