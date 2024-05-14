@@ -169,11 +169,21 @@ admin.add_view(StolAdmin(Stol, db.session))
 admin.add_view(RezervacijaAdmin(Rezervacija, db.session))
 
 
+current_prostorija_id = None  # Declare current_prostorija_id as a global variable with initial value None
 
 @app.route('/')
 def home():
-    prev_prostorija = Prostorija.query.first().naziv_prostorije
-    return render_template("homepage.html", prev_prostorija=prev_prostorija)
+    current_prostorija_id = request.args.get('current_prostorija_id') 
+
+    if current_prostorija_id is None:
+        return redirect(url_for('home', current_prostorija_id=0))
+    
+    current_prostorija = -4818
+    if current_prostorija_id != '-4818':
+        current_prostorija = Prostorija.query.get(current_prostorija_id)
+    
+    prev_prostorija = current_prostorija.naziv_prostorije if current_prostorija else None
+    return render_template("homepage.html", prev_prostorija=prev_prostorija, current_prostorija_id=current_prostorija_id)
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -240,30 +250,30 @@ def logout():
 
 @app.route('/next')
 def next_prostorija():
-    next_prostorija_id = current_prostorija_id + 1
-    # Fetch the prostorija with the next ID from the database
+    current_prostorija_id = request.args.get('current_prostorija_id', None)
+    next_prostorija_id = int(current_prostorija_id) + 1 if current_prostorija_id is not None else 1
     next_prostorija = Prostorija.query.get(next_prostorija_id)
     if next_prostorija:
-        # If the next prostorija exists, update current_prostorija_id
-        current_prostorija_id = next_prostorija_id
-        return jsonify({'naziv_prostorije': next_prostorija.naziv_prostorije})
+        return redirect(f"/?current_prostorija_id={next_prostorija_id}")
     else:
-        # Handle if there is no next prostorija (end of the list, for example)
-        return jsonify({'error': 'No next prostorija found'})
+        return redirect(f"/?current_prostorija_id={current_prostorija_id or ''}")
 
 @app.route('/prev')
 def prev_prostorija():
-    next_prostorija_id = current_prostorija_id - 1
-    # Fetch the prostorija with the next ID from the database
-    next_prostorija = Prostorija.query.get(next_prostorija_id)
-    if next_prostorija:
-        # If the next prostorija exists, update current_prostorija_id
-        current_prostorija_id = next_prostorija_id
-        return jsonify({'naziv_prostorije': next_prostorija.naziv_prostorije})
+    current_prostorija_id = request.args.get('current_prostorija_id', None)
+    prev_prostorija_id = int(current_prostorija_id) - 1 if current_prostorija_id is not None else 0
+    prev_prostorija = Prostorija.query.get(prev_prostorija_id)
+    if prev_prostorija:
+        return redirect(f"/?current_prostorija_id={prev_prostorija_id}")
     else:
-        # Handle if there is no next prostorija (end of the list, for example)
-        return jsonify({'error': 'No next prostorija found'})
-    
+        return redirect(f"/?current_prostorija_id={current_prostorija_id or ''}")
+
+@app.route('/reserve_table', methods=['POST'])
+def reserve_table():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    else:
+        return redirect(url_for('rezervacija.action_view'))
 
 if __name__ == '__main__':
     with app.app_context():
@@ -278,8 +288,8 @@ if __name__ == '__main__':
         db.session.commit()
 
         # Create instances of Prostorija
-        prostorija1 = Prostorija(naziv_prostorije='Ulaz', restoran_id=restoran.id)
-        prostorija2 = Prostorija(naziv_prostorije='Prostorija za ručak', restoran_id=restoran.id)
+        prostorija1 = Prostorija(naziv_prostorije='Ulaz', restoran_id=restoran.id, id=0)
+        prostorija2 = Prostorija(naziv_prostorije='Prostorija za ručak', restoran_id=restoran.id, id=1)
         db.session.add_all([prostorija1, prostorija2])
         db.session.commit()
 

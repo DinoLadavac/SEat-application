@@ -10,10 +10,9 @@
 </head>
 
 <body>
-    <div class="grid-container">
-        <div class="logo">
-            <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Slika Loga">
-        </div>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Slika Loga">
+    </div>
         {% if session['logged_in'] %}
         <div class="icons">
             <form action="/logout" method="POST">
@@ -32,18 +31,20 @@
             </form>
         </div>
         {% endif %}
+        <div class="grid-container">
         <div class="date-time-container">
             <form id="datetime-form" action="/" method="get">
-                <label for="datum"  style="color: #00008B ; font-family: 'Milonga', cursive;  display: inline-block;">Date:</label>
+                <input type="hidden" name="current_prostorija_id" value="{{ current_prostorija_id }}">
+                <label for="datum" style="color: #00008B; font-family: 'Milonga', cursive; display: inline-block;">Date:</label>
                 <input type="date" name="date" id="date"><br>
-                <label for="vrijeme"  style="color: #00008B ; font-family: 'Milonga', cursive; display: inline-block;">Time:</label>
-                <input  type="time" name="time" id="time">
+                <label for="vrijeme" style="color: #00008B; font-family: 'Milonga', cursive; display: inline-block;">Time:</label>
+                <input type="time" name="time" id="time">
             </form>
         </div>
         <div class="izbornik">
-            <button class="prevButton" hx-get="/prev" method="post">&lt; </button>
+            <a class="prevButton" href="/prev?current_prostorija_id={{ current_prostorija_id }}"> &lt;</a>
             <span class="option-label" id="prostorijaLabel" style="color: black; font-family: 'Milonga', cursive;">{{ prev_prostorija }}</span>
-            <button class="nextButton" hx-get="/next" method="post"> &gt;</button>
+            <a class="nextButton" href="/next?current_prostorija_id={{ current_prostorija_id }}"> &gt;</a>
         </div>
         <div class="table-background">
             <div class="table-container">
@@ -51,7 +52,9 @@
                     <div class="table">
                         <div class="tooltip">
                             <span class="tooltip-text">Reserve this table?</span>
-                            <button class="reserve-button" hx-post="/reserve" hx-target="#reservation-status">Reserve</button>
+                            <form id="reserve-form" method="post" action="{{ url_for('reserve_table') }}">
+                            <button class="reserve-button">Reserve</button>
+                        </form>
                         </div>
                     </div>
                     <div class="table"></div>
@@ -68,6 +71,11 @@
     </div>
 
     <script>
+        window.onload = function() {
+            var current_prostorija_id = "{{ current_prostorija_id }}";
+            var form = document.getElementById("datetime-form");
+            form.action = "/?current_prostorija_id=" + current_prostorija_id;
+        };
         // Submit the form when date or time input fields change
         document.getElementById("date").addEventListener("change", function() {
             document.getElementById("datetime-form").submit();
@@ -107,13 +115,11 @@
         var defaultHour;
         if (!timeParam) {
             if (currentMinute >= 30) {
-                defaultHour = ('0' + (currentHour + 1)).slice(-2);
-            } else {
-                defaultHour = ('0' + currentHour).slice(-2);
+                currentHour = (currentHour + 1) % 24; // Increment hour and reset to 0 if it becomes 24
             }
-            var defaultTime = defaultHour + ':00'; 
+            defaultHour = ('0' + currentHour).slice(-2); // Ensure leading zero for single-digit hours
+            var defaultTime = defaultHour + ':00'; // Construct the default time format
         }
-    
         // Set the values of the date and time input fields
         document.getElementById("date").value = dateParam || defaultDate;
         document.getElementById("time").value = timeParam || defaultTime;
