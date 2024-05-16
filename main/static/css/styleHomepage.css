@@ -1,0 +1,104 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #e3f6f5;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #0077b6;
+}
+
+.auth-buttons button {
+    background: #0077b6;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    margin-left: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.auth-buttons .register {
+    background: #fff;
+    color: #0077b6;
+    border: 2px solid #0077b6;
+}
+
+.reservation-info {
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.reservation-info div {
+    margin-left: 20px;
+}
+
+.reservation-info label {
+    font-weight: bold;
+}
+
+main {
+    padding: 20px;
+    text-align: center;
+}
+
+.navigation {
+    margin-bottom: 20px;
+}
+
+.nav-button {
+    background: #0077b6;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.seating-chart {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    justify-items: center;
+}
+
+.table {
+    background: #000;
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 16px;
+    width: 100px;
+}
+
+.two-person {
+    grid-column: span 1;
+}
+
+.four-person {
+    grid-column: span 1;
+}
+
+.fourteen-person {
+    grid-column: span 5;
+}
+
+.reserved {
+    background: #ff0000;
+}

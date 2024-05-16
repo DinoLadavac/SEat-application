@@ -31,6 +31,11 @@
             </form>
         </div>
         <div id="registration-response"></div>
+        <div class="register-container" style="margin-top: 30px;">
+            <p style="text-align: center; color: #00008B ; font-family: 'Milonga', cursive;">Already a member? Login here!</p>
+            <button onclick="window.location.href = '/login';">Login</button>
+        </div>
+    </div>
         <script>
             document.getElementById('register-form').addEventListener('htmx:responseError', function (event) {
                 var errorResponse = event.detail.xhr.response;

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Homepage{% endblock %}</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.7.0"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Milonga:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Milonga';
+            height: 100vh;
+            background: linear-gradient(white, skyblue);
+        }
+        .navbar {
+            justify-content: center;
+            background-color: transparent;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+        .logo {
+            max-height: 80px;
+        }
+        .header-btns {
+            position: absolute;
+            right: 30px;
+            top: 10px;
+        }
+        .header-btns .btn {
+            border-radius: 44px;
+            margin-left: 15px;
+            margin-top: 15px;
+            padding: 12px 40px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .header-btns .btn2 {
+            border-radius: 44px;
+            margin-left: 15px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .btn-login {
+            background-color: #5061F7;
+            border-color: #5061F7;
+            color: white;
+        }
+        .btn-register {
+            background-color: white;
+            border-color: #5061F7;
+            color: #5061F7;
+        }
+        .icons img {
+            width: 50px; 
+            height: 50px;
+            margin-top: 15px;
+        }
+
+        .prevButton img {
+            width: 40px; 
+            height: 40px;
+            margin-right: 20px;
+        }
+        .nextButton img {
+            width: 40px; 
+            height: 40px;
+            margin-left: 20px;
+        }
+
+        .room-selector, .datetime-picker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        .room-selector {
+            font-size: 30px;
+            color: #5d5dff;
+        }
+        .datetime-picker {
+            flex-direction: column;
+            align-items: flex-start;
+            color: #5061F7;
+        }
+        .datetime-picker select,
+        .datetime-picker input {
+            margin-bottom: 10px;
+            border: 1px solid black;
+            color: #5061F7;
+            font-weight: bold;
+            padding: 5px;
+            background-color: white;
+            border-radius: 4px;
+        }
+        .datetime-picker select option {
+            font-weight: bold;
+            color: black;
+            background-color: white;
+        }
+        .table-selector {
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: white;
+            width: 80%;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .table-container {
+            position: relative;
+            display: inline-block;
+        }
+        .table {
+            margin: 10px;
+            display: inline-block;
+            width: 100px;
+            height: 50px;
+            background-color: black;
+            color: white;
+            border-radius: 25px;
+            line-height: 50px;
+            font-weight: bold;
+        }
+        .table.reserved {
+            background-color: red;
+        }
+        .popup {
+            display: none;
+            position: absolute;
+            top: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            z-index: 1;
+        }
+        .table-container:hover .popup {
+            display: block;
+        }
+        .center-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+    </style>
+</head>
+<body id="main-body">
+    {% block navbar %}
+    {% endblock %}
+    
+    {% block content %}
+    {% endblock %}
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

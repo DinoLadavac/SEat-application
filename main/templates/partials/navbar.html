@@ -1,0 +1,10 @@
+<nav class="navbar navbar-light">
+    <a class="navbar-brand" href="#">
+        <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Logo" class="logo">
+    </a>
+    <div class="header-btns icons ">
+        <button class="btn btn-login" hx-get="/logout" hx-target="#main-body">Logout</button>
+        <a class="btn2" href="/mail"><img src="{{ url_for('static', filename = 'images/mail.svg') }}" alt="Icon 1"></a>
+        <a class="btn2" href="/profile"><img src="{{ url_for('static', filename = 'images/person.svg') }}" alt="Icon 2"></a>
+    </div>
+</nav>

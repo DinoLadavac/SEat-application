@@ -4,3 +4,4 @@ Flask-SQLAlchemy==3.1.1
 flask-admin
 flask-wtf
 wtforms_sqlalchemy
+Jinja2
