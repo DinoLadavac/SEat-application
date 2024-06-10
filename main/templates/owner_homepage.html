@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block navbar %}
+    {% if session['logged_in'] %}
+        {% include "partials/navbar.html" %}
+    {% else %}
+        {% include "partials/navbarGUEST.html" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% include "partials/room_selector_owner.html" %}
+    {% include "partials/table_info.html" %}
+{% endblock %}

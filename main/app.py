@@ -15,11 +15,14 @@ from datetime import timedelta
 from wtforms import Field
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
+
+# Ensure the DB_URL environment variable is set, else use a default
+db_url = environ.get('DB_URL', 'sqlite:///test.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SECRET_KEY'] = 'top-secret!'
+
 db = SQLAlchemy(app)
 admin = Admin(app, name='Admin', template_mode='bootstrap3')
-
 class Korisnik(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -197,10 +200,8 @@ def register():
 
         if not email or not password or not confirm_password or not user_type_id:
             error = 'Email, password, confirm password, and user type are required!'
-
         elif password != confirm_password:
             error = 'Passwords do not match!'
-
         else:
             existing_user = Korisnik.query.filter_by(email=email).first()
             if existing_user:
@@ -212,10 +213,17 @@ def register():
                 db.session.commit()
 
                 session['logged_in'] = True
-                return redirect(url_for("home"))
+                session['user_id'] = new_user.id
+
+                # Redirect based on the user role
+                if new_user.tip_korisnika.naziv_tipa_korisnika == 'Guest':
+                    return redirect(url_for("home"))
+                elif new_user.tip_korisnika.naziv_tipa_korisnika == 'Restaurant Owner':
+                    return redirect(url_for("owner_homepage"))
 
     tip_korisnici = TipKorisnika.query.all()
     return render_template('register.html', tip_korisnici=tip_korisnici, error=error)
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -238,9 +246,15 @@ def login():
                     error = 'Invalid email or password!'
                 else:
                     session['logged_in'] = True
-                    return redirect(url_for("home"))
+                    session['user_id'] = user.id
+                    # Redirect based on the user role
+                    if user.tip_korisnika.naziv_tipa_korisnika == 'Guest':
+                        return redirect(url_for("home"))
+                    elif user.tip_korisnika.naziv_tipa_korisnika == 'Restaurant Owner':
+                        return redirect(url_for("owner_homepage"))
 
     return render_template('login.html', error=error)
+
 
 @app.route('/logout', methods=['POST', 'GET'])
 def logout():
@@ -274,6 +288,48 @@ def reserve_table():
         return redirect(url_for('login'))
     else:
         return redirect(url_for('rezervacija.action_view'))
+    
+@app.route('/owner')
+def owner_homepage():
+    current_prostorija_id = request.args.get('current_prostorija_id', None)
+    
+    if current_prostorija_id is None:
+        return redirect(url_for('owner_homepage', current_prostorija_id=0))
+    
+    current_prostorija_id = int(current_prostorija_id)
+    current_prostorija = Prostorija.query.get(current_prostorija_id)
+    
+    prev_prostorija = Prostorija.query.get(current_prostorija_id - 1) if current_prostorija_id > 0 else None
+    next_prostorija = Prostorija.query.get(current_prostorija_id + 1)
+
+    return render_template(
+        "owner_homepage.html", 
+        current_prostorija_id=current_prostorija_id,
+        current_prostorija=current_prostorija,
+        prev_prostorija=prev_prostorija,
+        next_prostorija=next_prostorija
+    )
+
+@app.route('/owner_prev')
+def owner_prev_prostorija():
+    current_prostorija_id = request.args.get('current_prostorija_id', None)
+    prev_prostorija_id = int(current_prostorija_id) - 1 if current_prostorija_id is not None else 0
+    prev_prostorija = Prostorija.query.get(prev_prostorija_id)
+    if prev_prostorija:
+        return redirect(url_for('owner_homepage', current_prostorija_id=prev_prostorija_id))
+    else:
+        return redirect(url_for('owner_homepage', current_prostorija_id=current_prostorija_id or 0))
+
+@app.route('/owner_next')
+def owner_next_prostorija():
+    current_prostorija_id = request.args.get('current_prostorija_id', None)
+    next_prostorija_id = int(current_prostorija_id) + 1 if current_prostorija_id is not None else 1
+    next_prostorija = Prostorija.query.get(next_prostorija_id)
+    if next_prostorija:
+        return redirect(url_for('owner_homepage', current_prostorija_id=next_prostorija_id))
+    else:
+        return redirect(url_for('owner_homepage', current_prostorija_id=current_prostorija_id or 0))
+
 
 if __name__ == '__main__':
     with app.app_context():

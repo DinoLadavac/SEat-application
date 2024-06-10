@@ -1,0 +1,46 @@
+<div class="container">
+    <div class="row center-content" style="height: 100px; margin-top: 50px;">
+        <div class="col-md-4"></div>
+        <div class="col-md-4 room-selector text-center">
+            <a class="prevButton" href="{{ url_for('owner_prev_prostorija', current_prostorija_id=current_prostorija_id) }}"> 
+                <img src="{{ url_for('static', filename='images/leftArrow.svg') }}" alt="left arrow">
+            </a>
+            <span>{{ current_prostorija.naziv_prostorije if current_prostorija else 'No current room' }}</span>
+            <a class="nextButton" href="{{ url_for('owner_next_prostorija', current_prostorija_id=current_prostorija_id) }}">
+                <img src="{{ url_for('static', filename='images/rightArrow.svg') }}" alt="right arrow">
+            </a>
+        </div>
+        <div class="col-md-4 datetime-picker text-right">
+            <div>
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date">
+            </div>
+            <div>
+                <label for="time">Time:</label>
+                <select id="time" name="time">
+                    <option>11:00</option>
+                    <option>11:30</option>
+                    <option>12:00</option>
+                    <option>12:30</option>
+                    <option>13:00</option>
+                    <option>13:30</option>
+                    <option>14:00</option>
+                    <option>14:30</option>
+                    <option>15:00</option>
+                    <option>15:30</option>
+                    <option>16:00</option>
+                    <option>16:30</option>
+                    <option>17:00</option>
+                    <option>17:30</option>
+                    <option>18:00</option>
+                    <option>18:30</option>
+                    <option>19:00</option>
+                    <option>19:30</option>
+                    <option>20:00</option>
+                    <option>20:30</option>
+                    <option>21:00</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
