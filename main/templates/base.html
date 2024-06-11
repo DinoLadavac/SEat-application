@@ -11,8 +11,11 @@
 
         body {
             font-family: 'Milonga';
-            height: 100vh;
+            min-height: 100vh;
             background: linear-gradient(white, skyblue);
+            background-attachment: fixed;
+            background-size: cover;
+            padding-bottom: 10%;
         }
         .navbar {
             justify-content: center;
@@ -102,13 +105,14 @@
             background-color: white;
         }
         .table-selector {
+            width: 80%;
+            height: 500px;
+            border: 1px solid #ccc;
+            position: relative;
             margin: 20px auto;
             padding: 20px;
             border-radius: 15px;
             background-color: white;
-            width: 80%;
-            text-align: center;
-            font-weight: bold;
         }
 
         .table-container {
@@ -116,15 +120,19 @@
             display: inline-block;
         }
         .table {
-            margin: 10px;
-            display: inline-block;
             width: 100px;
             height: 50px;
+            background-color: #f0f0f0;
+            border: 1px solid #000;
+            position: absolute;
             background-color: black;
             color: white;
             border-radius: 25px;
             line-height: 50px;
             font-weight: bold;
+            margin: 10px;
+            display: inline-block;
+            text-align: center;
         }
         .table.reserved {
             background-color: red;
@@ -132,9 +140,7 @@
         .popup {
             display: none;
             position: absolute;
-            top: -70px;
-            left: 50%;
-            transform: translateX(-50%);
+            transform: translateY(-80%) translateX(8%);
             background-color: #f1f1f1;
             border: 1px solid #ccc;
             border-radius: 8px;

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Layout</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <style>
+        body {
+            font-family: 'Milonga';
+            height: 100vh;
+            background: linear-gradient(white, skyblue);
+            padding-top: 5%;
+        }
+        .room-layout {
+            width: 80%;
+            height: 500px;
+            border: 1px solid #ccc;
+            position: relative;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: white;
+        }
+        .table {
+            width: 100px;
+            height: 50px;
+            background-color: #f0f0f0;
+            border: 1px solid #000;
+            position: absolute;
+            background-color: black;
+            color: white;
+            border-radius: 25px;
+            line-height: 50px;
+            font-weight: bold;
+            margin: 10px;
+            display: inline-block;
+            text-align: center;
+        }
+        .table-container {
+            position: relative;
+            display: inline-block;
+        }
+        .button-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        h1{
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Room Layout for {{ room.naziv_prostorije }}</h1>
+    <div class="room-layout" id="room-layout">
+        {% for table in room.stolovi %}
+        <div class="table-container">
+            <div class="table" id="table-{{ table.id }}">
+                Table {{ table.broj_stola }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="button-container">
+        <button class="btn btn-primary" id="save-layout">Save Layout</button>
+        <a href="{{ url_for('owner_administration') }}" class="btn btn-secondary">Return to Administration</a>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Set the initial position of the tables
+            {% for table in room.stolovi %}
+                $("#table-{{ table.id }}").css({
+                    left: "{{ table.x }}px",
+                    top: "{{ table.y }}px"
+                });
+            {% endfor %}
+
+            $(".table").draggable({
+                containment: "#room-layout"
+            });
+
+            $("#save-layout").click(function() {
+                var layout = [];
+                $(".table").each(function() {
+                    var id = $(this).attr("id").split("-")[1];
+                    var x = $(this).position().left;
+                    var y = $(this).position().top;
+                    layout.push({ id: id, x: x, y: y });
+                });
+
+                $.ajax({
+                    url: "{{ url_for('save_layout', room_id=room.id) }}",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ layout: layout }),
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            alert("Layout saved successfully!");
+                        } else {
+                            alert("Failed to save layout.");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

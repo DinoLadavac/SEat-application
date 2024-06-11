@@ -1,0 +1,13 @@
+<ul>
+    {% for table in room.stolovi %}
+        <li>
+            Table {{ table.broj_stola }} - Seats: {{ table.broj_mjesta }} - 
+            <span hx-post="{{ url_for('update_table', table_id=table.id) }}" hx-trigger="change from:select" hx-target="this">
+                <select name="available">
+                    <option value="true" {% if table.available %}selected{% endif %}>Available</option>
+                    <option value="false" {% if not table.available %}selected{% endif %}>Unavailable</option>
+                </select>
+            </span>
+        </li>
+    {% endfor %}
+</ul>

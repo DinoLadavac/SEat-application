@@ -53,15 +53,20 @@ class Datum(db.Model):
     datum_dana = db.Column(db.Date, nullable=False)
 
 class Prostorija(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'prostorija'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     naziv_prostorije = db.Column(db.String(100), nullable=False)
     restoran_id = db.Column(db.Integer, db.ForeignKey('restoran.id'), nullable=False)
     restoran = db.relationship('Restoran', backref=db.backref('prostorije', lazy=True))
 
 class Stol(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'stol'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     broj_stola = db.Column(db.Integer, nullable=False)
     broj_mjesta = db.Column(db.Integer, nullable=False)
+    available = db.Column(db.Boolean, default=True)
+    x = db.Column(db.Integer, nullable=False, default=0)
+    y = db.Column(db.Integer, nullable=False, default=0)
     prostorija_id = db.Column(db.Integer, db.ForeignKey('prostorija.id'), nullable=False)
     prostorija = db.relationship('Prostorija', backref=db.backref('stolovi', lazy=True))
 
@@ -179,7 +184,7 @@ def home():
     current_prostorija_id = request.args.get('current_prostorija_id') 
 
     if current_prostorija_id is None:
-        return redirect(url_for('home', current_prostorija_id=0))
+        return redirect(url_for('home', current_prostorija_id=1))
     
     current_prostorija = -4818
     if current_prostorija_id != '-4818':
@@ -329,7 +334,67 @@ def owner_next_prostorija():
         return redirect(url_for('owner_homepage', current_prostorija_id=next_prostorija_id))
     else:
         return redirect(url_for('owner_homepage', current_prostorija_id=current_prostorija_id or 0))
+    
+@app.route('/owner_administration')
+def owner_administration():
+    rooms = Prostorija.query.all()
+    return render_template('owner_administration.html', rooms=rooms)
 
+@app.route('/room/add', methods=['POST'])
+def add_room():
+    name = request.form.get('name')
+    if name:
+        restoran = Restoran.query.first()
+        new_room = Prostorija(naziv_prostorije=name, restoran_id = restoran.id)
+        db.session.add(new_room)
+        db.session.commit()
+    return redirect(url_for('owner_administration'))
+
+@app.route('/table/add', methods=['POST'])
+def add_table():
+    room_id = request.form.get('room_id')
+    number = request.form.get('number')
+    seats = request.form.get('seats')
+    if room_id and number and seats:
+        new_table = Stol(prostorija_id=room_id, broj_stola=number, broj_mjesta=seats)
+        db.session.add(new_table)
+        db.session.commit()
+    return redirect(url_for('owner_administration'))
+
+@app.route('/table/update/<int:room_id>/<int:table_id>', methods=['POST'])
+def update_table(room_id, table_id):
+    table = Stol.query.get_or_404(table_id)
+    room = Prostorija.query.get_or_404(room_id)
+    table.broj_mjesta = request.form.get('seats')
+    table.available = request.form.get('available') == 'true'
+    db.session.commit()
+    return render_template('partials/table_edit.html', table=table, room=room)
+
+@app.route('/room/<int:room_id>/tables')
+def get_tables(room_id):
+    room = Prostorija.query.get_or_404(room_id)
+    return render_template('partials/tables.html', room=room)
+
+@app.route('/room/<int:room_id>/guest_layout', methods=['GET'])
+def guest_layout(room_id):
+    room = Prostorija.query.get_or_404(room_id)
+    return render_template('partials/table_selector.html', room=room)
+
+@app.route('/room/<int:room_id>/layout', methods=['GET'])
+def room_layout(room_id):
+    room = Prostorija.query.get_or_404(room_id)
+    return render_template('layout.html', room=room)
+
+@app.route('/room/<int:room_id>/layout/save', methods=['POST'])
+def save_layout(room_id):
+    room = Prostorija.query.get_or_404(room_id)
+    layout_data = request.json.get('layout')
+    for table_data in layout_data:
+        table = Stol.query.get_or_404(table_data['id'])
+        table.x = table_data['x']
+        table.y = table_data['y']
+    db.session.commit()
+    return jsonify({'status': 'success'})
 
 if __name__ == '__main__':
     with app.app_context():
@@ -344,8 +409,8 @@ if __name__ == '__main__':
         db.session.commit()
 
         # Create instances of Prostorija
-        prostorija1 = Prostorija(naziv_prostorije='Ulaz', restoran_id=restoran.id, id=0)
-        prostorija2 = Prostorija(naziv_prostorije='Prostorija za ručak', restoran_id=restoran.id, id=1)
+        prostorija1 = Prostorija(naziv_prostorije='Ulaz', restoran_id=restoran.id)
+        prostorija2 = Prostorija(naziv_prostorije='Prostorija za ručak', restoran_id=restoran.id)
         db.session.add_all([prostorija1, prostorija2])
         db.session.commit()
 

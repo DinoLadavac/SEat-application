@@ -1,91 +1,12 @@
-<div class="container">
-    <div class="row center-content">
-        <div class="col-md-12">
+
             <div class="table-selector">
+                {% for table in room.stolovi %}
                 <div class="table-container">
-                    <div class="table">4 person</div>
-                    <div class="popup">
+                    <div class="table" style="left: {{ table.x }}px; top: {{ table.y }}px;">{{table.broj_mjesta}} person</div>
+                    <div class="popup"  style="left: {{ table.x }}px; top: {{ table.y }}px;">
                         <p>Reserve this table?</p>
                         <button class="btn btn-primary">Reserve</button>
                     </div>
                 </div>
-                <div class="table-container">
-                    <div class="table">2 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table reserved">Reserved</div>
-                </div>
-                <div class="table-container">
-                    <div class="table">4 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table">2 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table">2 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table reserved">Reserved</div>
-                </div>
-                <div class="table-container">
-                    <div class="table">4 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table">2 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table">4 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table">2 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table">4 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <div class="table">14 person</div>
-                    <div class="popup">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
-        </div>
-    </div>
-</div>

@@ -1,0 +1,23 @@
+{% for table in room.stolovi %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h6>Table {{ table.broj_stola }} - Seats: {{ table.broj_mjesta }} - Available: {{ table.available }}</h6>
+        <form hx-post="{{ url_for('update_table', room_id=room.id, table_id=table.id) }}" hx-swap="innerHTML" hx-target="#tables-{{ room.id }}">
+            <div class="form-row align-items-center">
+                <div class="col-auto">
+                    <input type="number" class="form-control mb-2" name="seats" value="{{ table.broj_mjesta }}" required>
+                </div>
+                <div class="col-auto">
+                    <select class="form-control mb-2" name="available">
+                        <option value="true" {% if table.available %}selected{% endif %}>Available</option>
+                        <option value="false" {% if not table.available %}selected{% endif %}>Unavailable</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-success mb-2">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
