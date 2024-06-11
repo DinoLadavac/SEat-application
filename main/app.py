@@ -179,34 +179,20 @@ admin.add_view(RezervacijaAdmin(Rezervacija, db.session))
 
 current_prostorija_id = None  # Declare current_prostorija_id as a global variable with initial value None
 
-# @app.route('/')
-# def home():
-#     current_prostorija_id = request.args.get('current_prostorija_id') 
-
-#     if current_prostorija_id is None:
-#         return redirect(url_for('home', current_prostorija_id=0))
-    
-#     current_prostorija = -4818
-#     if current_prostorija_id != '-4818':
-#         current_prostorija = Prostorija.query.get(current_prostorija_id)
-    
-#     prev_prostorija = current_prostorija.naziv_prostorije if current_prostorija else None
-#     return render_template("homepage.html", prev_prostorija=prev_prostorija, current_prostorija_id=current_prostorija_id)
-
 @app.route('/')
 def home():
     current_prostorija_id = request.args.get('current_prostorija_id') 
 
     if current_prostorija_id is None:
-        return redirect(url_for('home', current_prostorija_id=1))
+         return redirect(url_for('home', current_prostorija_id=1))
     
     current_prostorija = -4818
     if current_prostorija_id != '-4818':
         current_prostorija = Prostorija.query.get(current_prostorija_id)
     
     prev_prostorija = current_prostorija.naziv_prostorije if current_prostorija else None
+    return render_template("homepage.html", prev_prostorija=prev_prostorija, current_prostorija_id=current_prostorija_id)
 
-    return render_template("homepage.html", prev_prostorija=prev_prostorija, current_prostorija_id=current_prostorija_id, selected_date=selected_date, selected_time=selected_time)
 
 
 @app.route('/register', methods=['POST', 'GET'])
