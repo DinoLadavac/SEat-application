@@ -228,7 +228,7 @@ def register():
                 if new_user.tip_korisnika.naziv_tipa_korisnika == 'Guest':
                     return redirect(url_for("home"))
                 elif new_user.tip_korisnika.naziv_tipa_korisnika == 'Restaurant Owner':
-                    return redirect(url_for("owner_homepage"))
+                    return redirect(url_for("home"))
 
     tip_korisnici = TipKorisnika.query.all()
     return render_template('register.html', tip_korisnici=tip_korisnici, error=error)
@@ -260,7 +260,7 @@ def login():
                     if user.tip_korisnika.naziv_tipa_korisnika == 'Guest':
                         return redirect(url_for("home"))
                     elif user.tip_korisnika.naziv_tipa_korisnika == 'Restaurant Owner':
-                        return redirect(url_for("owner_homepage"))
+                        return redirect(url_for("home"))
 
     return render_template('login.html', error=error)
 
@@ -306,10 +306,10 @@ def reserve_table():
     
 @app.route('/owner')
 def owner_homepage():
-    current_prostorija_id = request.args.get('current_prostorija_id', None)
+    current_prostorija_id = request.args.get('current_prostorija_id', 1)
     
     if current_prostorija_id is None:
-        return redirect(url_for('owner_homepage', current_prostorija_id=0))
+        return redirect(url_for('owner_homepage', current_prostorija_id=1))
     
     current_prostorija_id = int(current_prostorija_id)
     current_prostorija = Prostorija.query.get(current_prostorija_id)
