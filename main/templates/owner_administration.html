@@ -2,7 +2,10 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h3 class="mt-5">Add Room</h3>
+    <div class="d-flex justify-content-between align-items-center">
+        <h3 class="mt-5">Add Room</h3>
+        <a href="/" class="btn btn-secondary">Go to Homepage</a>
+    </div>
     <form action="{{ url_for('add_room') }}" method="post" class="mb-4">
         <div class="form-group">
             <input type="text" class="form-control" name="name" placeholder="Room Name" required>
@@ -42,6 +45,9 @@
                                         <div class="col-auto">
                                             <button type="submit" class="btn btn-success mb-2">Save</button>
                                         </div>
+                                        <div class="col-auto">
+                                            <button type="button" class="btn btn-danger mb-2" data-toggle="modal" data-target="#removeTableModal" data-room-id="{{ room.id }}" data-table-id="{{ table.id }}">Remove</button>
+                                        </div>
                                     </div>
                                 </form>
                             </div>
@@ -53,7 +59,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal for Adding Table -->
 <div class="modal fade" id="addTableModal" tabindex="-1" role="dialog" aria-labelledby="addTableModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -79,8 +85,31 @@
     </div>
 </div>
 
+<!-- Modal for Removing Table -->
+<div class="modal fade" id="removeTableModal" tabindex="-1" role="dialog" aria-labelledby="removeTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeTableModalLabel">Remove Table</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="removeTableForm" action="{{ url_for('remove_table') }}" method="post">
+                    <input type="hidden" name="room_id" id="remove-modal-room-id" required>
+                    <input type="hidden" name="table_id" id="remove-modal-table-id" required>
+                    <p>Are you sure you want to remove this table?</p>
+                    <button type="submit" class="btn btn-danger">Remove</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery, Popper.js, and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     var scrollPosition = 0;
@@ -96,6 +125,24 @@
     });
 
     $('#addTableModal').on('hidden.bs.modal', function () {
+        // Restore the scroll position
+        console.log('Modal closed, restoring scroll position to:', scrollPosition);
+        $(window).scrollTop(scrollPosition);
+    });
+
+    $('#removeTableModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var roomId = button.data('room-id'); // Extract info from data-* attributes
+        var tableId = button.data('table-id'); // Extract info from data-* attributes
+        var modal = $(this);
+        modal.find('#remove-modal-room-id').val(roomId);
+        modal.find('#remove-modal-table-id').val(tableId);
+
+        // Store the scroll position
+        scrollPosition = $(window).scrollTop();
+    });
+
+    $('#removeTableModal').on('hidden.bs.modal', function () {
         // Restore the scroll position
         console.log('Modal closed, restoring scroll position to:', scrollPosition);
         $(window).scrollTop(scrollPosition);

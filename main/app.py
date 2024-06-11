@@ -181,18 +181,20 @@ current_prostorija_id = None  # Declare current_prostorija_id as a global variab
 
 @app.route('/')
 def home():
-    current_prostorija_id = request.args.get('current_prostorija_id') 
+    current_prostorija_id = request.args.get('current_prostorija_id', 1, type=int)
+    selected_date = request.args.get('date')
+    selected_time = request.args.get('time')
 
-    if current_prostorija_id is None:
-         return redirect(url_for('home', current_prostorija_id=1))
-    
-    current_prostorija = -4818
-    if current_prostorija_id != '-4818':
-        current_prostorija = Prostorija.query.get(current_prostorija_id)
-    
+    current_prostorija = Prostorija.query.get(current_prostorija_id)
     prev_prostorija = current_prostorija.naziv_prostorije if current_prostorija else None
-    return render_template("homepage.html", prev_prostorija=prev_prostorija, current_prostorija_id=current_prostorija_id)
 
+    return render_template(
+        "homepage.html", 
+        prev_prostorija=prev_prostorija, 
+        current_prostorija_id=current_prostorija_id, 
+        selected_date=selected_date, 
+        selected_time=selected_time
+    )
 
 
 @app.route('/register', methods=['POST', 'GET'])
@@ -271,7 +273,7 @@ def logout():
 
 @app.route('/next')
 def next_prostorija():
-    current_prostorija_id = request.args.get('current_prostorija_id', 0, type=int)
+    current_prostorija_id = request.args.get('current_prostorija_id', 1, type=int)
     selected_date = request.args.get('date')
     selected_time = request.args.get('time')
 
@@ -284,7 +286,7 @@ def next_prostorija():
 
 @app.route('/prev')
 def prev_prostorija():
-    current_prostorija_id = request.args.get('current_prostorija_id', 0, type=int)
+    current_prostorija_id = request.args.get('current_prostorija_id', 1, type=int)
     selected_date = request.args.get('date')
     selected_time = request.args.get('time')
 
@@ -403,6 +405,18 @@ def save_layout(room_id):
         table.y = table_data['y']
     db.session.commit()
     return jsonify({'status': 'success'})
+
+@app.route('/table/remove', methods=['POST'])
+def remove_table():
+    room_id = request.form.get('room_id')
+    table_id = request.form.get('table_id')
+    
+    table = Stol.query.get_or_404(table_id)
+    db.session.delete(table)
+    db.session.commit()
+    
+    flash("Table removed successfully.")
+    return redirect(url_for('owner_administration'))
 
 if __name__ == '__main__':
     with app.app_context():

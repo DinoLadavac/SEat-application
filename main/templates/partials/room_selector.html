@@ -20,6 +20,27 @@
                 <div>
                     <label for="time">Time:</label>
                     <select id="time" name="time">
+                        <option {% if selected_time == "11:00" %}selected{% endif %}>11:00</option>
+                        <option {% if selected_time == "11:30" %}selected{% endif %}>11:30</option>
+                        <option {% if selected_time == "12:00" %}selected{% endif %}>12:00</option>
+                        <option {% if selected_time == "12:30" %}selected{% endif %}>12:30</option>
+                        <option {% if selected_time == "13:00" %}selected{% endif %}>13:00</option>
+                        <option {% if selected_time == "13:30" %}selected{% endif %}>13:30</option>
+                        <option {% if selected_time == "14:00" %}selected{% endif %}>14:00</option>
+                        <option {% if selected_time == "14:30" %}selected{% endif %}>14:30</option>
+                        <option {% if selected_time == "15:00" %}selected{% endif %}>15:00</option>
+                        <option {% if selected_time == "15:30" %}selected{% endif %}>15:30</option>
+                        <option {% if selected_time == "16:00" %}selected{% endif %}>16:00</option>
+                        <option {% if selected_time == "16:30" %}selected{% endif %}>16:30</option>
+                        <option {% if selected_time == "17:00" %}selected{% endif %}>17:00</option>
+                        <option {% if selected_time == "17:30" %}selected{% endif %}>17:30</option>
+                        <option {% if selected_time == "18:00" %}selected{% endif %}>18:00</option>
+                        <option {% if selected_time == "18:30" %}selected{% endif %}>18:30</option>
+                        <option {% if selected_time == "19:00" %}selected{% endif %}>19:00</option>
+                        <option {% if selected_time == "19:30" %}selected{% endif %}>19:30</option>
+                        <option {% if selected_time == "20:00" %}selected{% endif %}>20:00</option>
+                        <option {% if selected_time == "20:30" %}selected{% endif %}>20:30</option>
+                        <option {% if selected_time == "21:00" %}selected{% endif %}>21:00</option>
                     </select>
                 </div>
             </form>
@@ -30,3 +51,13 @@
 <div hx-get="{{ url_for('guest_layout', room_id=current_prostorija_id) }}" hx-trigger="load" hx-target="this">
 
 </div>
+
+<script>
+    document.getElementById('date').addEventListener('change', function() {
+        document.getElementById('datetime-form').submit();
+    });
+
+    document.getElementById('time').addEventListener('change', function() {
+        document.getElementById('datetime-form').submit();
+    });
+</script>
