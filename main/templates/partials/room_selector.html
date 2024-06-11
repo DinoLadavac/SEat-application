@@ -1,45 +1,49 @@
 <div class="container">
-<div class="row center-content" style="height: 100px; margin-top: 50px;">
-    <div class="col-md-4"></div>
-    <div class="col-md-4 room-selector text-center">
-        <a class="prevButton" href="/prev?current_prostorija_id={{ current_prostorija_id }}"> 
-            <img src="{{ url_for('static', filename = 'images/leftArrow.svg') }}" alt="left arrow">
-        </a>
-        <span>{{ prev_prostorija }}</span>
-        <a class="nextButton" href="/next?current_prostorija_id={{ current_prostorija_id }}">
-            <img src="{{ url_for('static', filename = 'images/rightArrow.svg') }}" alt="left arrow">
-        </a>
-    </div>
-    <div class="col-md-4 datetime-picker text-right">
-        <div>
-            <label for="date">Date:</label>
-            <input type="date" id="date">
+    <div class="row center-content" style="height: 100px; margin-top: 50px;">
+        <div class="col-md-4"></div>
+        <div class="col-md-4 room-selector text-center">
+            <a class="prevButton" href="/prev?current_prostorija_id={{ current_prostorija_id }}&date={{ selected_date }}&time={{ selected_time }}">
+                <img src="{{ url_for('static', filename = 'images/leftArrow.svg') }}" alt="left arrow">
+            </a>
+            <span>{{ prev_prostorija }}</span>
+            <a class="nextButton" href="/next?current_prostorija_id={{ current_prostorija_id }}&date={{ selected_date }}&time={{ selected_time }}">
+                <img src="{{ url_for('static', filename = 'images/rightArrow.svg') }}" alt="left arrow">
+            </a>
         </div>
-        <div>
-            <label for="time">Time:</label>
-            <select id="time">
-                <option>11:00</option>
-                <option>11:30</option>
-                <option>12:00</option>
-                <option>12:30</option>
-                <option>13:00</option>
-                <option>13:30</option>
-                <option>14:00</option>
-                <option>14:30</option>
-                <option>15:00</option>
-                <option>15:30</option>
-                <option>16:00</option>
-                <option>16:30</option>
-                <option>17:00</option>
-                <option>17:30</option>
-                <option>18:00</option>
-                <option>18:30</option>
-                <option>19:00</option>
-                <option>19:30</option>
-                <option>20:00</option>
-                <option>20:30</option>
-                <option>21:00</option>
-            </select>
+        <div class="col-md-4 datetime-picker text-right">
+            <form id="datetime-form" method="get" action="/">
+                <input type="hidden" name="current_prostorija_id" value="{{ current_prostorija_id }}">
+                <div>
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" name="date" value="{{ selected_date }}">
+                </div>
+                <div>
+                    <label for="time">Time:</label>
+                    <select id="time" name="time">
+                        <option {% if selected_time == "11:00" %}selected{% endif %}>11:00</option>
+                        <option {% if selected_time == "11:30" %}selected{% endif %}>11:30</option>
+                        <option {% if selected_time == "12:00" %}selected{% endif %}>12:00</option>
+                        <option {% if selected_time == "12:30" %}selected{% endif %}>12:30</option>
+                        <option {% if selected_time == "13:00" %}selected{% endif %}>13:00</option>
+                        <option {% if selected_time == "13:30" %}selected{% endif %}>13:30</option>
+                        <option {% if selected_time == "14:00" %}selected{% endif %}>14:00</option>
+                        <option {% if selected_time == "14:30" %}selected{% endif %}>14:30</option>
+                        <option {% if selected_time == "15:00" %}selected{% endif %}>15:00</option>
+                        <option {% if selected_time == "15:30" %}selected{% endif %}>15:30</option>
+                        <option {% if selected_time == "16:00" %}selected{% endif %}>16:00</option>
+                        <option {% if selected_time == "16:30" %}selected{% endif %}>16:30</option>
+                        <option {% if selected_time == "17:00" %}selected{% endif %}>17:00</option>
+                        <option {% if selected_time == "17:30" %}selected{% endif %}>17:30</option>
+                        <option {% if selected_time == "18:00" %}selected{% endif %}>18:00</option>
+                        <option {% if selected_time == "18:30" %}selected{% endif %}>18:30</option>
+                        <option {% if selected_time == "19:00" %}selected{% endif %}>19:00</option>
+                        <option {% if selected_time == "19:30" %}selected{% endif %}>19:30</option>
+                        <option {% if selected_time == "20:00" %}selected{% endif %}>20:00</option>
+                        <option {% if selected_time == "20:30" %}selected{% endif %}>20:30</option>
+                        <option {% if selected_time == "21:00" %}selected{% endif %}>21:00</option>
+                    </select>
+                </div>
+            </form>
         </div>
     </div>
 </div>

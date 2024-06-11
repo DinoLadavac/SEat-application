@@ -179,6 +179,20 @@ admin.add_view(RezervacijaAdmin(Rezervacija, db.session))
 
 current_prostorija_id = None  # Declare current_prostorija_id as a global variable with initial value None
 
+# @app.route('/')
+# def home():
+#     current_prostorija_id = request.args.get('current_prostorija_id') 
+
+#     if current_prostorija_id is None:
+#         return redirect(url_for('home', current_prostorija_id=0))
+    
+#     current_prostorija = -4818
+#     if current_prostorija_id != '-4818':
+#         current_prostorija = Prostorija.query.get(current_prostorija_id)
+    
+#     prev_prostorija = current_prostorija.naziv_prostorije if current_prostorija else None
+#     return render_template("homepage.html", prev_prostorija=prev_prostorija, current_prostorija_id=current_prostorija_id)
+
 @app.route('/')
 def home():
     current_prostorija_id = request.args.get('current_prostorija_id') 
@@ -191,7 +205,9 @@ def home():
         current_prostorija = Prostorija.query.get(current_prostorija_id)
     
     prev_prostorija = current_prostorija.naziv_prostorije if current_prostorija else None
-    return render_template("homepage.html", prev_prostorija=prev_prostorija, current_prostorija_id=current_prostorija_id)
+
+    return render_template("homepage.html", prev_prostorija=prev_prostorija, current_prostorija_id=current_prostorija_id, selected_date=selected_date, selected_time=selected_time)
+
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -269,23 +285,29 @@ def logout():
 
 @app.route('/next')
 def next_prostorija():
-    current_prostorija_id = request.args.get('current_prostorija_id', None)
-    next_prostorija_id = int(current_prostorija_id) + 1 if current_prostorija_id is not None else 1
+    current_prostorija_id = request.args.get('current_prostorija_id', 0, type=int)
+    selected_date = request.args.get('date')
+    selected_time = request.args.get('time')
+
+    next_prostorija_id = current_prostorija_id + 1
     next_prostorija = Prostorija.query.get(next_prostorija_id)
     if next_prostorija:
-        return redirect(f"/?current_prostorija_id={next_prostorija_id}")
+        return redirect(url_for('home', current_prostorija_id=next_prostorija_id, date=selected_date, time=selected_time))
     else:
-        return redirect(f"/?current_prostorija_id={current_prostorija_id or ''}")
+        return redirect(url_for('home', current_prostorija_id=current_prostorija_id, date=selected_date, time=selected_time))
 
 @app.route('/prev')
 def prev_prostorija():
-    current_prostorija_id = request.args.get('current_prostorija_id', None)
-    prev_prostorija_id = int(current_prostorija_id) - 1 if current_prostorija_id is not None else 0
+    current_prostorija_id = request.args.get('current_prostorija_id', 0, type=int)
+    selected_date = request.args.get('date')
+    selected_time = request.args.get('time')
+
+    prev_prostorija_id = current_prostorija_id - 1
     prev_prostorija = Prostorija.query.get(prev_prostorija_id)
     if prev_prostorija:
-        return redirect(f"/?current_prostorija_id={prev_prostorija_id}")
+        return redirect(url_for('home', current_prostorija_id=prev_prostorija_id, date=selected_date, time=selected_time))
     else:
-        return redirect(f"/?current_prostorija_id={current_prostorija_id or ''}")
+        return redirect(url_for('home', current_prostorija_id=current_prostorija_id, date=selected_date, time=selected_time))
 
 @app.route('/reserve_table', methods=['POST'])
 def reserve_table():
