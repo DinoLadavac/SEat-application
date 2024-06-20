@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Milonga:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Milonga';
+            min-height: 100vh;
+            background: linear-gradient(white, skyblue);
+            background-attachment: fixed;
+            background-size: cover;
+            padding-bottom: 10%;
+        }
+        .navbar {
+            justify-content: center;
+            background-color: transparent;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+        .logo {
+            max-height: 80px;
+        }
+        .header-btns {
+            position: absolute;
+            right: 30px;
+            top: 10px;
+        }
+        .header-btns .btn {
+            border-radius: 44px;
+            margin-left: 15px;
+            margin-top: 15px;
+            padding: 12px 40px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .header-btns .btn2 {
+            border-radius: 44px;
+            margin-left: 15px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .btn-login {
+            background-color: #5061F7;
+            border-color: #5061F7;
+            color: white;
+        }
+        .btn-register {
+            background-color: white;
+            border-color: #5061F7;
+            color: #5061F7;
+        }
+        .icons img {
+            width: 50px; 
+            height: 50px;
+            margin-top: 15px;
+        }
+
+        .working-hours-table th, .working-hours-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .working-hours-table input[type="time"] {
+            margin: 5px 0;
+        }
+
+        .closed {
+            color: red;
+        }
+    </style>
+</head>
+<body id="main-body">
+    <nav class="navbar navbar-light">
+        <a class="navbar-brand" href="#">
+            <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Logo" class="logo">
+        </a>
+        <div class="header-btns icons d-flex align-items-center">
+            <button class="btn btn-login" hx-get="/logout" hx-target="#main-body">Logout</button>
+            <a class="btn2" href="/mail">
+                <img src="{{ url_for('static', filename='images/mail.svg') }}" alt="Mail Icon">
+            </a>
+            <div class="dropdown">
+                <a class="btn2 dropdown-toggle" href="#" id="profileDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <img src="{{ url_for('static', filename='images/person.svg') }}" alt="Profile Icon">
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profileDropdown">
+                    <a class="dropdown-item" href="/profile">Change restoran information</a>
+                    <a class="dropdown-item" href="/owner_administration">Change room layouts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Profile</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="restoranName">Restaurant name:</label>
+                <input type="text" class="form-control" id="restoranName" name="restoranName" value="{{ restoran.naziv_restorana }}">
+            </div>
+            <div class="form-group">
+                <label>Working hours:</label>
+                <table class="table working-hours-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {% for day in days_of_week %}
+                                <th>{{ day.naziv_dana }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Closed</td>
+                            {% for day in days_of_week %}
+                                {% set hours = radno_vrijeme | selectattr('dan_id', 'equalto', day.id) | list %}
+                                <td>
+                                    <input type="checkbox" name="closed_{{ day.id }}" class="closed-checkbox" data-day-id="{{ day.id }}" {% if not hours %}checked{% endif %}>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td>Start W. hours</td>
+                            {% for day in days_of_week %}
+                                {% set hours = radno_vrijeme | selectattr('dan_id', 'equalto', day.id) | list %}
+                                <td>
+                                    <input type="time" name="start_{{ day.id }}" value="{{ hours[0].pocetak_radnog_vremena.strftime('%H:%M') if hours else '' }}" {% if not hours %}disabled{% endif %}>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td>End W. hours</td>
+                            {% for day in days_of_week %}
+                                {% set hours = radno_vrijeme | selectattr('dan_id', 'equalto', day.id) | list %}
+                                <td>
+                                    <input type="time" name="end_{{ day.id }}" value="{{ hours[0].kraj_radnog_vremena.strftime('%H:%M') if hours else '' }}" {% if not hours %}disabled{% endif %}>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.closed-checkbox');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    const dayId = this.dataset.dayId;
+                    const startInput = document.querySelector(`input[name="start_${dayId}"]`);
+                    const endInput = document.querySelector(`input[name="end_${dayId}"]`);
+                    if (this.checked) {
+                        startInput.disabled = true;
+                        endInput.disabled = true;
+                    } else {
+                        startInput.disabled = false;
+                        endInput.disabled = false;
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -13,6 +13,8 @@ from wtforms.widgets import TextInput
 from wtforms.validators import ValidationError
 from datetime import timedelta
 from wtforms import Field
+from datetime import datetime
+
 
 app = Flask(__name__)
 
@@ -418,10 +420,87 @@ def remove_table():
     flash("Table removed successfully.")
     return redirect(url_for('owner_administration'))
 
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    restoran = Restoran.query.first()
+    radno_vrijeme = RadnoVrijeme.query.filter_by(restoran_id=restoran.id).all()
+    
+    if request.method == 'POST':
+        restoran_name = request.form.get('restoranName')
+        if restoran_name:
+            restoran.naziv_restorana = restoran_name
+            db.session.commit()
+
+        days_of_week = [
+            {'id': 1, 'naziv_dana': 'Mon'},
+            {'id': 2, 'naziv_dana': 'Tue'},
+            {'id': 3, 'naziv_dana': 'Wed'},
+            {'id': 4, 'naziv_dana': 'Thu'},
+            {'id': 5, 'naziv_dana': 'Fri'},
+            {'id': 6, 'naziv_dana': 'Sat'},
+            {'id': 7, 'naziv_dana': 'Sun'}
+        ]
+
+        for day in days_of_week:
+            closed = request.form.get(f'closed_{day["id"]}') == 'on'
+            start_time = request.form.get(f'start_{day["id"]}')
+            end_time = request.form.get(f'end_{day["id"]}')
+            rv = next((rv for rv in radno_vrijeme if rv.dan_id == day['id']), None)
+
+            if closed:
+                if rv:
+                    db.session.delete(rv)
+            else:
+                if rv:
+                    if start_time and end_time:
+                        rv.pocetak_radnog_vremena = datetime.strptime(start_time, '%H:%M').time()
+                        rv.kraj_radnog_vremena = datetime.strptime(end_time, '%H:%M').time()
+                else:
+                    if start_time and end_time:
+                        new_rv = RadnoVrijeme(
+                            pocetak_radnog_vremena=datetime.strptime(start_time, '%H:%M').time(),
+                            kraj_radnog_vremena=datetime.strptime(end_time, '%H:%M').time(),
+                            restoran_id=restoran.id,
+                            dan_id=day['id']
+                        )
+                        db.session.add(new_rv)
+                db.session.commit()
+
+        flash('Profile updated successfully', 'success')
+        return redirect(url_for('profile'))
+
+    days_of_week = [
+        {'id': 1, 'naziv_dana': 'Mon'},
+        {'id': 2, 'naziv_dana': 'Tue'},
+        {'id': 3, 'naziv_dana': 'Wed'},
+        {'id': 4, 'naziv_dana': 'Thu'},
+        {'id': 5, 'naziv_dana': 'Fri'},
+        {'id': 6, 'naziv_dana': 'Sat'},
+        {'id': 7, 'naziv_dana': 'Sun'}
+    ]
+
+    return render_template('profile.html', restoran=restoran, radno_vrijeme=radno_vrijeme, days_of_week=days_of_week)
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.drop_all()
         db.create_all()
+        if Datum.query.count() == 0:
+            days_of_week = [
+                {'id': 1, 'naziv_dana': 'Mon', 'datum_dana': datetime(2023, 1, 2)},
+                {'id': 2, 'naziv_dana': 'Tue', 'datum_dana': datetime(2023, 1, 3)},
+                {'id': 3, 'naziv_dana': 'Wed', 'datum_dana': datetime(2023, 1, 4)},
+                {'id': 4, 'naziv_dana': 'Thu', 'datum_dana': datetime(2023, 1, 5)},
+                {'id': 5, 'naziv_dana': 'Fri', 'datum_dana': datetime(2023, 1, 6)},
+                {'id': 6, 'naziv_dana': 'Sat', 'datum_dana': datetime(2023, 1, 7)},
+                {'id': 7, 'naziv_dana': 'Sun', 'datum_dana': datetime(2023, 1, 8)}
+            ]
+            for day in days_of_week:
+                datum = Datum(id=day['id'], naziv_dana=day['naziv_dana'], datum_dana=day['datum_dana'])
+                db.session.add(datum)
+            db.session.commit()
         tip_guest = TipKorisnika(naziv_tipa_korisnika='Guest')
         tip_restaurant_owner = TipKorisnika(naziv_tipa_korisnika='Restaurant Owner')
 
