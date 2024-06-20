@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Reserve a Table{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Reserve a Table</h2>
+    <form method="POST" action="{{ url_for('make_reservation', table_id=table.id) }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="room">Restaurant room:</label>
+            <input type="text" id="room" class="form-control" value="{{ room.naziv_prostorije }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="table">Table ID:</label>
+            <input type="text" id="table" class="form-control" value="{{ table.id }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="number_of_persons">Table for:</label>
+            <input type="text" id="number_of_persons" class="form-control" value="{{ table.broj_mjesta }} persons" readonly>
+        </div>
+        <div class="form-group">
+            {{ form.datum.label(class="form-label") }}
+            {{ form.datum(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.vrijeme_rezervacije.label(class="form-label") }}
+            {{ form.vrijeme_rezervacije(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.trajanje_rezervacije.label(class="form-label") }}
+            {{ form.trajanje_rezervacije(class="form-control") }}
+        </div>
+        <div class="form-group">
+            <label for="contact">My Contact:</label>
+            <input type="email" id="contact" class="form-control" value="{{ form.korisnik.data.email }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="phone">My number (optional):</label>
+            <input type="text" id="phone" name="phone" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Reserve</button>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Homepage</a>
+    </form>
+</div>
+{% endblock %}

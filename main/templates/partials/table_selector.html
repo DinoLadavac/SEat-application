@@ -1,12 +1,24 @@
+<div class="table-selector">
+    {% for table in room.stolovi %}
+    <div class="table-container">
+        <div class="table" style="left: {{ table.x }}px; top: {{ table.y }}px;">{{table.broj_mjesta}} person</div>
+        {% if session.get('user_role') == 'Guest' %}
+        <div class="popup"  style="left: {{ table.x }}px; top: {{ table.y }}px;">
+            <p>Reserve this table?</p>
+            <a href="{{ url_for('make_reservation', table_id=table.id) }}" class="btn btn-primary">Reserve</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
 
-            <div class="table-selector">
-                {% for table in room.stolovi %}
-                <div class="table-container">
-                    <div class="table" style="left: {{ table.x }}px; top: {{ table.y }}px;">{{table.broj_mjesta}} person</div>
-                    <div class="popup"  style="left: {{ table.x }}px; top: {{ table.y }}px;">
-                        <p>Reserve this table?</p>
-                        <button class="btn btn-primary">Reserve</button>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+<script>
+    document.querySelectorAll('.table-container').forEach(container => {
+        container.addEventListener('mouseover', function() {
+            this.querySelector('.popup').style.display = 'block';
+        });
+        container.addEventListener('mouseout', function() {
+            this.querySelector('.popup').style.display = 'none';
+        });
+    });
+</script>

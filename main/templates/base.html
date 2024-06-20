@@ -161,6 +161,15 @@
 </head>
 <body id="main-body">
     {% block navbar %}
+        {% if session.get('logged_in') %}
+            {% if session.get('user_role') == 'Guest' %}
+                {% include "partials/navbar_loggedGUEST.html" %}
+            {% else %}
+                {% include "partials/navbar.html" %}
+            {% endif %}
+        {% else %}
+            {% include "partials/navbarGUEST.html" %}
+        {% endif %}
     {% endblock %}
     
     {% block content %}

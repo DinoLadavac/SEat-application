@@ -7,7 +7,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_wtf import FlaskForm
 from wtforms_sqlalchemy.fields import QuerySelectField
-from wtforms import StringField, TimeField, PasswordField, IntegerField, SubmitField
+from wtforms import StringField, TimeField, PasswordField, IntegerField, SubmitField, DateField
 from wtforms.validators import DataRequired
 from wtforms.widgets import TextInput
 from wtforms.validators import ValidationError
@@ -154,9 +154,13 @@ class TimeDeltaField(Field):
 class RezervacijaForm(FlaskForm):
     korisnik = QuerySelectField('Korisnik', query_factory=lambda: Korisnik.query.all(), get_label='email')
     stol = QuerySelectField('Stol', query_factory=lambda: Stol.query.all(), get_label='broj_stola')
-    datum = QuerySelectField('Datum', query_factory=lambda: Datum.query.all(), get_label='naziv_dana')
+    datum = DateField('Datum', format='%Y-%m-%d', validators=[DataRequired()])
     vrijeme_rezervacije = TimeField('Vrijeme Rezervacije', validators=[DataRequired()])
     trajanje_rezervacije = TimeDeltaField('Trajanje Rezervacije', validators=[DataRequired()])
+    phone = StringField('My number (optional)')
+    save = SubmitField('Save changes')
+    discard = SubmitField('Discard')
+    number_of_persons = IntegerField('Number of persons', validators=[DataRequired()])
 
 # Custom Admin View for Rezervacija
 class RezervacijaAdmin(ModelView):
@@ -199,6 +203,32 @@ def home():
     )
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        data = request.form
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            error = 'Email and password are required!'
+        else:
+            user = Korisnik.query.filter_by(email=email).first()
+            if not user:
+                error = 'User does not exist!'
+            else:
+                hashed_password = hashlib.sha256(password.encode()).hexdigest()
+                if hashed_password != user.password:
+                    error = 'Invalid email or password!'
+                else:
+                    session['logged_in'] = True
+                    session['user_id'] = user.id
+                    session['user_role'] = user.tip_korisnika.naziv_tipa_korisnika
+                    return redirect(url_for("home"))
+
+    return render_template('login.html', error=error)
+
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     error = None
@@ -225,47 +255,12 @@ def register():
 
                 session['logged_in'] = True
                 session['user_id'] = new_user.id
+                session['user_role'] = new_user.tip_korisnika.naziv_tipa_korisnika
 
-                # Redirect based on the user role
-                if new_user.tip_korisnika.naziv_tipa_korisnika == 'Guest':
-                    return redirect(url_for("home"))
-                elif new_user.tip_korisnika.naziv_tipa_korisnika == 'Restaurant Owner':
-                    return redirect(url_for("home"))
+                return redirect(url_for("home"))
 
     tip_korisnici = TipKorisnika.query.all()
     return render_template('register.html', tip_korisnici=tip_korisnici, error=error)
-
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    error = None
-    if request.method == 'POST':
-        data = request.form
-        email = data.get('email')
-        password = data.get('password')
-
-        if not email or not password:
-            error = 'Email and password are required!'
-        else:
-            user = Korisnik.query.filter_by(email=email).first()
-            if not user:
-                error = 'User does not exist!'
-            else:
-                hashed_password = hashlib.sha256(password.encode()).hexdigest()
-                if hashed_password != user.password:
-                    error = 'Invalid email or password!'
-                else:
-                    session['logged_in'] = True
-                    session['user_id'] = user.id
-                    # Redirect based on the user role
-                    if user.tip_korisnika.naziv_tipa_korisnika == 'Guest':
-                        return redirect(url_for("home"))
-                    elif user.tip_korisnika.naziv_tipa_korisnika == 'Restaurant Owner':
-                        return redirect(url_for("home"))
-
-    return render_template('login.html', error=error)
-
 
 @app.route('/logout', methods=['POST', 'GET'])
 def logout():
@@ -481,6 +476,46 @@ def profile():
     ]
 
     return render_template('profile.html', restoran=restoran, radno_vrijeme=radno_vrijeme, days_of_week=days_of_week)
+
+@app.route('/make_reservation/<int:table_id>', methods=['GET', 'POST'])
+def make_reservation(table_id):
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+
+    user = Korisnik.query.get(session['user_id'])
+    if user.tip_korisnika.naziv_tipa_korisnika != 'Guest':
+        flash('Restaurant Owners cannot reserve tables.', 'danger')
+        return redirect(url_for('home'))
+
+    table = Stol.query.get_or_404(table_id)
+    room = table.prostorija
+    form = RezervacijaForm()
+
+    if form.validate_on_submit():
+        datum = Datum.query.filter_by(datum_dana=form.datum.data).first()
+        if not datum:
+            datum = Datum(naziv_dana=form.datum.data.strftime('%A'), datum_dana=form.datum.data)
+            db.session.add(datum)
+            db.session.commit()
+
+        reservation = Rezervacija(
+            korisnik_id=user.id,
+            stol_id=table.id,
+            datum_id=datum.id,
+            vrijeme_rezervacije=form.vrijeme_rezervacije.data,
+            trajanje_rezervacije=timedelta(hours=form.trajanje_rezervacije.data.total_seconds() // 3600)
+        )
+        db.session.add(reservation)
+        db.session.commit()
+        flash('Table reserved successfully.', 'success')
+        return redirect(url_for('make_reservation', table_id=table_id))
+
+    form.korisnik.data = user
+    form.stol.data = table
+    form.number_of_persons.data = table.broj_mjesta
+
+    return render_template('reserve.html', form=form, room=room, table=table)
+
 
 
 if __name__ == '__main__':
