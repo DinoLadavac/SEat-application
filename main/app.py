@@ -362,13 +362,13 @@ def add_room():
     if name:
         existing_room = Prostorija.query.filter(Prostorija.naziv_prostorije.ilike(name)).first()
         if existing_room:
-            flash('Prostorija s ovim nazivom već postoji.', 'danger')
+            flash('A room with this name already exists.', 'danger')
             return redirect(url_for('owner_administration'))
         restoran = Restoran.query.first()
         new_room = Prostorija(naziv_prostorije=name, restoran_id=restoran.id)
         db.session.add(new_room)
         db.session.commit()
-        flash('Prostroija uspješno dodana.', 'success')
+        flash('Room sucesfully added.', 'success')
     else:
         flash('Name is required.', 'danger')
     return redirect(url_for('owner_administration'))
@@ -378,11 +378,27 @@ def add_table():
     room_id = request.form.get('room_id')
     number = request.form.get('number')
     seats = request.form.get('seats')
-    if room_id and number and seats:
+    
+    # Validate that seats is a positive integer and within the limit (1 to 20)
+    try:
+        seats = int(seats)
+        if seats <= 0 or seats > 20:
+            flash('Number of seats must be between 1 and 20.', 'danger')
+            return redirect(url_for('owner_administration'))
+    except ValueError:
+        flash('Invalid number of seats entered.', 'danger')
+        return redirect(url_for('owner_administration'))
+
+    if room_id and number:
         new_table = Stol(prostorija_id=room_id, broj_stola=number, broj_mjesta=seats)
         db.session.add(new_table)
         db.session.commit()
+        flash('Table added successfully.', 'success')
+    else:
+        flash('Missing required fields (room_id, number).', 'error')
+
     return redirect(url_for('owner_administration'))
+
 
 @app.route('/table/update/<int:room_id>/<int:table_id>', methods=['POST'])
 def update_table(room_id, table_id):
