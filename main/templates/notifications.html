@@ -65,7 +65,7 @@ Notifications
 
 {% block content %}
 <div class="container mt-5">
-    <div class="card mb-3 reservation" id="res1">
+    <div class="card mb-3 reservation" id="res1" hx-get="/fetch_notification/1" hx-swap="outerHTML">
         <div class="card-body">
             <h5 class="card-title text-danger">Person #1</h5>
             <p class="card-text">Reserved a <span class="highlight">6 person table</span> in <span class="highlight">Terrace</span> for : <span class="highlight">Sep. 25, 2024</span>. Time: <span class="highlight">18h - 20h</span></p>
@@ -79,12 +79,13 @@ Notifications
             <p class="card-text">Contact on: <span class="contact">person182.mail.com</span></p>
         </div>
     </div>
-    <div class="card mb-3 admin-change" id="admin1">
-        <div class="card-body">
-            <p class="card-text">Admin#4 changed the working hours into: <span class="highlight">Saturday: 13 - 24h</span></p>
-        </div>
-    </div>
-    <div class="card mb-3 reservation" id="res3">
+	<div class="card mb-3 admin-change" id="res3">
+		<div class="card-body">
+			<h5 class="card-title text-danger">Admin #4</h5>
+			<p class="card-text">Changed the working hours into: <span class="highlight">Saturday: 13 - 24h</span></p>
+		</div>
+	</div>
+    <div class="card mb-3 reservation" id="res4">
         <div class="card-body">
             <h5 class="card-title text-danger">Person #19</h5>
             <p class="card-text">Reserved a <span class="highlight">6 person table</span> in <span class="highlight">Terrace</span> for : <span class="highlight">April. 21, 2024</span>. Time: <span class="highlight">19h - 21h</span></p>
