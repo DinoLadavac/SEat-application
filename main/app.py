@@ -431,6 +431,10 @@ def remove_table():
     flash("Table removed successfully.")
     return redirect(url_for('owner_administration'))
 
+@app.route('/notifications')
+def notification():
+    return render_template('notifications.html')
+
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():

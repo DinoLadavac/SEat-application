@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}
+Notifications
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Milonga:wght@400;700&display=swap');
+
+    body {
+        font-family: 'Milonga';
+        min-height: 100vh;
+        background: linear-gradient(white, skyblue);
+        background-attachment: fixed;
+        background-size: cover;
+        padding-bottom: 10%;
+    }
+    .navbar {
+        justify-content: center;
+        background-color: transparent;
+    }
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+    }
+    .logo {
+        max-height: 80px;
+    }
+    .container {
+        width: 80%;
+        max-width: 800px;
+        background-color: #0D47A1; /* Dark blue background */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-top: 20px; /* Add margin to create space below navbar */
+        color: white; /* Optional: change text color to white for better contrast */
+    }
+    .reservation, .admin-change {
+        background-color: #1976D2; /* Adjusted shade of blue for cards */
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .reservation p, .admin-change p {
+        margin: 5px 0;
+    }
+    .person {
+        color: #d32f2f;
+        font-weight: bold;
+    }
+    .highlight {
+        color: #d32f2f;
+        font-weight: bold;
+    }
+    .contact {
+        color: #d32f2f;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card mb-3 reservation" id="res1">
+        <div class="card-body">
+            <h5 class="card-title text-danger">Person #1</h5>
+            <p class="card-text">Reserved a <span class="highlight">6 person table</span> in <span class="highlight">Terrace</span> for : <span class="highlight">Sep. 25, 2024</span>. Time: <span class="highlight">18h - 20h</span></p>
+            <p class="card-text">Contact on: <span class="contact">person.mail.com</span></p>
+        </div>
+    </div>
+    <div class="card mb-3 reservation" id="res2">
+        <div class="card-body">
+            <h5 class="card-title text-danger">Person #182</h5>
+            <p class="card-text">Reserved a <span class="highlight">2 person table</span> in <span class="highlight">Entrance Room</span> for : <span class="highlight">May. 3, 2024</span>. Time: <span class="highlight">20h - 21h</span></p>
+            <p class="card-text">Contact on: <span class="contact">person182.mail.com</span></p>
+        </div>
+    </div>
+    <div class="card mb-3 admin-change" id="admin1">
+        <div class="card-body">
+            <p class="card-text">Admin#4 changed the working hours into: <span class="highlight">Saturday: 13 - 24h</span></p>
+        </div>
+    </div>
+    <div class="card mb-3 reservation" id="res3">
+        <div class="card-body">
+            <h5 class="card-title text-danger">Person #19</h5>
+            <p class="card-text">Reserved a <span class="highlight">6 person table</span> in <span class="highlight">Terrace</span> for : <span class="highlight">April. 21, 2024</span>. Time: <span class="highlight">19h - 21h</span></p>
+            <p class="card-text">Contact on: <span class="contact">person19.mail.com</span></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
