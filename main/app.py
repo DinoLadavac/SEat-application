@@ -14,6 +14,7 @@ from wtforms.validators import ValidationError
 from datetime import timedelta
 from wtforms import Field
 from datetime import datetime
+from sqlalchemy import event
 
 
 app = Flask(__name__)
@@ -60,6 +61,14 @@ class Prostorija(db.Model):
     naziv_prostorije = db.Column(db.String(100), nullable=False)
     restoran_id = db.Column(db.Integer, db.ForeignKey('restoran.id'), nullable=False)
     restoran = db.relationship('Restoran', backref=db.backref('prostorije', lazy=True))
+
+@event.listens_for(Prostorija, 'before_insert')
+def receive_before_insert(mapper, connection, target):
+    target.naziv_prostorije = target.naziv_prostorije.lower()
+
+@event.listens_for(Prostorija, 'before_update')
+def receive_before_update(mapper, connection, target):
+    target.naziv_prostorije = target.naziv_prostorije.lower()
 
 class Stol(db.Model):
     __tablename__ = 'stol'
@@ -349,12 +358,19 @@ def owner_administration():
 
 @app.route('/room/add', methods=['POST'])
 def add_room():
-    name = request.form.get('name')
+    name = request.form.get('name').strip().lower()
     if name:
+        existing_room = Prostorija.query.filter(Prostorija.naziv_prostorije.ilike(name)).first()
+        if existing_room:
+            flash('Prostorija s ovim nazivom već postoji.', 'danger')
+            return redirect(url_for('owner_administration'))
         restoran = Restoran.query.first()
-        new_room = Prostorija(naziv_prostorije=name, restoran_id = restoran.id)
+        new_room = Prostorija(naziv_prostorije=name, restoran_id=restoran.id)
         db.session.add(new_room)
         db.session.commit()
+        flash('Prostroija uspješno dodana.', 'success')
+    else:
+        flash('Name is required.', 'danger')
     return redirect(url_for('owner_administration'))
 
 @app.route('/table/add', methods=['POST'])
