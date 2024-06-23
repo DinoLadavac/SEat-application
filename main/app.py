@@ -599,7 +599,7 @@ def get_time_options():
 
 if __name__ == '__main__':
     with app.app_context():
-        db.drop_all()
+        #db.drop_all()  # Ukloni ili komentiraj ovu liniju
         db.create_all()
         if Datum.query.count() == 0:
             days_of_week = [
@@ -615,20 +615,22 @@ if __name__ == '__main__':
                 datum = Datum(id=day['id'], naziv_dana=day['naziv_dana'], datum_dana=day['datum_dana'])
                 db.session.add(datum)
             db.session.commit()
-        tip_guest = TipKorisnika(naziv_tipa_korisnika='Guest')
-        tip_restaurant_owner = TipKorisnika(naziv_tipa_korisnika='Restaurant Owner')
+        
+        if TipKorisnika.query.count() == 0:
+            tip_guest = TipKorisnika(naziv_tipa_korisnika='Guest')
+            tip_restaurant_owner = TipKorisnika(naziv_tipa_korisnika='Restaurant Owner')
+            db.session.add_all([tip_guest, tip_restaurant_owner])
+            db.session.commit()
 
-        # Create instances of Restoran
-        restoran = Restoran(naziv_restorana='The Fiume')
-        db.session.add_all([tip_guest, tip_restaurant_owner, restoran])
-        db.session.commit()
+        if Restoran.query.count() == 0:
+            restoran = Restoran(naziv_restorana='The Fiume')
+            db.session.add(restoran)
+            db.session.commit()
 
-        # Create instances of Prostorija
-        prostorija1 = Prostorija(naziv_prostorije='Ulaz', restoran_id=restoran.id)
-        prostorija2 = Prostorija(naziv_prostorije='Prostorija za ručak', restoran_id=restoran.id)
-        db.session.add_all([prostorija1, prostorija2])
-        db.session.commit()
+        if Prostorija.query.count() == 0:
+            prostorija1 = Prostorija(naziv_prostorije='Ulaz', restoran_id=restoran.id)
+            prostorija2 = Prostorija(naziv_prostorije='Prostorija za ručak', restoran_id=restoran.id)
+            db.session.add_all([prostorija1, prostorija2])
+            db.session.commit()
 
-        db.session.add_all([tip_guest, tip_restaurant_owner])
-        db.session.commit()
     app.run(debug=True, host='0.0.0.0', port=4000)
