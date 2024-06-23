@@ -178,5 +178,42 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        var scrollPosition = 0;
+    
+        $('#addTableModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var roomId = button.data('room-id'); // Extract info from data-* attributes
+            var modal = $(this);
+            modal.find('#modal-room-id').val(roomId);
+    
+            // Store the scroll position
+            scrollPosition = $(window).scrollTop();
+        });
+    
+        $('#addTableModal').on('hidden.bs.modal', function () {
+            // Restore the scroll position
+            console.log('Modal closed, restoring scroll position to:', scrollPosition);
+            $(window).scrollTop(scrollPosition);
+        });
+    
+        $('#removeTableModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var roomId = button.data('room-id'); // Extract info from data-* attributes
+            var tableId = button.data('table-id'); // Extract info from data-* attributes
+            var modal = $(this);
+            modal.find('#remove-modal-room-id').val(roomId);
+            modal.find('#remove-modal-table-id').val(tableId);
+    
+            // Store the scroll position
+            scrollPosition = $(window).scrollTop();
+        });
+    
+        $('#removeTableModal').on('hidden.bs.modal', function () {
+            // Restore the scroll position
+            console.log('Modal closed, restoring scroll position to:', scrollPosition);
+            $(window).scrollTop(scrollPosition);
+        });
+    </script>
 </body>
 </html>

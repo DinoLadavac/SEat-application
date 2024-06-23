@@ -1,9 +1,17 @@
 <div class="table-selector">
     {% for table in room.stolovi %}
     <div class="table-container">
-        <div class="table" style="left: {{ table.x }}px; top: {{ table.y }}px;">{{table.broj_mjesta}} person</div>
-        {% if session.get('user_role') == 'Guest' %}
-        <div class="popup"  style="left: {{ table.x }}px; top: {{ table.y }}px;">
+        {% set is_reserved = [] %}
+        {% for reservation in reservations %}
+            {% if reservation.stol_id == table.id %}
+                {% set _ = is_reserved.append(1) %}
+            {% endif %}
+        {% endfor %}
+        <div class="table" style="left: {{ table.x }}px; top: {{ table.y }}px; {% if is_reserved %}background-color: red;{% endif %}">
+            {{table.broj_mjesta}} person
+        </div>
+        {% if session.get('user_role') == 'Guest' and not is_reserved%}
+        <div class="popup" style="left: {{ table.x }}px; top: {{ table.y }}px;">
             <p>Reserve this table?</p>
             <a href="{{ url_for('make_reservation', table_id=table.id) }}" class="btn btn-primary">Reserve</a>
         </div>

@@ -1,6 +1,3 @@
-{% extends "base.html" %}
-
-{% block content %}
 <div class="container" id="reserve">
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -52,4 +49,3 @@
         <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Homepage</a>
     </form>
 </div>
-{% endblock %}

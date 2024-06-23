@@ -78,7 +78,7 @@
 </head>
 <body id="main-body">
     <nav class="navbar navbar-light">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="/">
             <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Logo" class="logo">
         </a>
         <div class="header-btns icons d-flex align-items-center">
@@ -132,7 +132,6 @@
                                 {% set hours = radno_vrijeme | selectattr('dan_id', 'equalto', day.id) | list %}
                                 <td>
                                     <input type="time" name="start_{{ day.id }}" value="{{ hours[0].pocetak_radnog_vremena.strftime('%H:%M') if hours else '' }}" {% if not hours %}disabled{% endif %}>
-                                </td>
                             {% endfor %}
                         </tr>
                         <tr>

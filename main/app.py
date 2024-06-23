@@ -7,7 +7,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_wtf import FlaskForm
 from wtforms_sqlalchemy.fields import QuerySelectField
-from wtforms import StringField, TimeField, PasswordField, IntegerField, SubmitField, DateField
+from wtforms import StringField, TimeField, PasswordField, IntegerField, SubmitField, DateField, SelectField
 from wtforms.validators import DataRequired
 from wtforms.widgets import TextInput
 from wtforms.validators import ValidationError
@@ -15,7 +15,7 @@ from datetime import timedelta
 from wtforms import Field
 from datetime import datetime
 from sqlalchemy import event
-
+from sqlalchemy.sql import func, and_, or_
 
 app = Flask(__name__)
 
@@ -85,12 +85,11 @@ class Rezervacija(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     korisnik_id = db.Column(db.Integer, db.ForeignKey('korisnik.id'), nullable=False)
     stol_id = db.Column(db.Integer, db.ForeignKey('stol.id'), nullable=False)
-    datum_id = db.Column(db.Integer, db.ForeignKey('datum.id'), nullable=False)
+    datum = db.Column(db.Date, nullable=False)
     vrijeme_rezervacije = db.Column(db.Time, nullable=False)
-    trajanje_rezervacije = db.Column(db.Interval, nullable=False)
+    trajanje_rezervacije = db.Column(db.Float, nullable=False)
     korisnik = db.relationship('Korisnik', backref=db.backref('rezervacije', lazy=True))
     stol = db.relationship('Stol', backref=db.backref('rezervacije', lazy=True))
-    datum = db.relationship('Datum', backref=db.backref('rezervacije', lazy=True))
 
 class KorisnikForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
@@ -165,10 +164,8 @@ class RezervacijaForm(FlaskForm):
     stol = QuerySelectField('Stol', query_factory=lambda: Stol.query.all(), get_label='broj_stola')
     datum = DateField('Datum', format='%Y-%m-%d', validators=[DataRequired()])
     vrijeme_rezervacije = TimeField('Vrijeme Rezervacije', validators=[DataRequired()])
-    trajanje_rezervacije = TimeDeltaField('Trajanje Rezervacije', validators=[DataRequired()])
+    trajanje_rezervacije = SelectField('Trajanje Rezervacije', choices=[(0.5, '0.5 hours'), (1, '1 hour'), (1.5, '1.5 hours'), (2, '2 hours'), (2.5, '2.5 hours'), (3, '3 hours'), (3.5, '3.5 hours'), (4, '4 hours')], coerce=float, validators=[DataRequired()])
     phone = StringField('My number (optional)')
-    save = SubmitField('Save changes')
-    discard = SubmitField('Discard')
     number_of_persons = IntegerField('Number of persons', validators=[DataRequired()])
 
 # Custom Admin View for Rezervacija
@@ -178,7 +175,7 @@ class RezervacijaAdmin(ModelView):
     def on_model_change(self, form, model, is_created):
         model.korisnik_id = form.korisnik.data.id
         model.stol_id = form.stol.data.id
-        model.datum_id = form.datum.data.id
+        model.datum = form.datum.data
 
 
 # Add views
@@ -194,6 +191,12 @@ admin.add_view(RezervacijaAdmin(Rezervacija, db.session))
 
 current_prostorija_id = None  # Declare current_prostorija_id as a global variable with initial value None
 
+def is_overlapping(reservation, selected_datetime):
+    start_time = reservation.vrijeme_rezervacije
+    end_time = (datetime.combine(datetime.today(), start_time) + timedelta(hours=reservation.trajanje_rezervacije) + timedelta(minutes=30)).time()
+    selected_time = selected_datetime.time()
+    return start_time <= selected_time <= end_time
+    
 @app.route('/')
 def home():
     current_prostorija_id = request.args.get('current_prostorija_id', 1, type=int)
@@ -417,7 +420,27 @@ def get_tables(room_id):
 @app.route('/room/<int:room_id>/guest_layout', methods=['GET'])
 def guest_layout(room_id):
     room = Prostorija.query.get_or_404(room_id)
-    return render_template('partials/table_selector.html', room=room)
+    selected_date = request.args.get('date')
+    selected_time = request.args.get('time')
+
+    if selected_date and selected_time:
+        selected_datetime = datetime.strptime(f"{selected_date} {selected_time}", '%Y-%m-%d %H:%M')
+        time_before = (selected_datetime - timedelta(minutes=30)).time()
+        time_after = (selected_datetime + timedelta(minutes=30)).time()
+    else:
+        selected_datetime = None
+        time_before = None
+        time_after = None
+
+    if selected_date and selected_time:
+        reservations = Rezervacija.query.filter(
+            Rezervacija.stol.has(prostorija_id=room_id),
+            Rezervacija.datum == selected_date
+        ).all()
+        filtered_reservations = [res for res in reservations if is_overlapping(res, selected_datetime)]
+    else:
+        filtered_reservations = []
+    return render_template('partials/table_selector.html', room=room, reservations=filtered_reservations)
 
 @app.route('/room/<int:room_id>/layout', methods=['GET'])
 def room_layout(room_id):
@@ -444,7 +467,7 @@ def remove_table():
     db.session.delete(table)
     db.session.commit()
     
-    flash("Table removed successfully.")
+    flash("Table removed successfully.", "success")
     return redirect(url_for('owner_administration'))
 
 @app.route('/notifications')
@@ -478,6 +501,7 @@ def profile():
             start_time = request.form.get(f'start_{day["id"]}')
             end_time = request.form.get(f'end_{day["id"]}')
             rv = next((rv for rv in radno_vrijeme if rv.dan_id == day['id']), None)
+            print(start_time)
 
             if closed:
                 if rv:
@@ -498,7 +522,7 @@ def profile():
                         db.session.add(new_rv)
                 db.session.commit()
 
-        flash('Profile updated successfully', 'success')
+        flash('Profile updated successfully')
         return redirect(url_for('profile'))
 
     days_of_week = [
@@ -520,39 +544,58 @@ def make_reservation(table_id):
 
     user = Korisnik.query.get(session['user_id'])
     if user.tip_korisnika.naziv_tipa_korisnika != 'Guest':
-        flash('Restaurant Owners cannot reserve tables.', 'danger')
+        flash('Restaurant Owners cannot reserve tables.')
         return redirect(url_for('home'))
 
     table = Stol.query.get_or_404(table_id)
     room = table.prostorija
     form = RezervacijaForm()
 
-    if form.validate_on_submit():
-        datum = Datum.query.filter_by(datum_dana=form.datum.data).first()
-        if not datum:
-            datum = Datum(naziv_dana=form.datum.data.strftime('%A'), datum_dana=form.datum.data)
-            db.session.add(datum)
-            db.session.commit()
-
+    if request.method == 'POST':
         reservation = Rezervacija(
             korisnik_id=user.id,
-            stol_id=table.id,
-            datum_id=datum.id,
+            stol_id=table_id,
+            datum=form.datum.data,
             vrijeme_rezervacije=form.vrijeme_rezervacije.data,
-            trajanje_rezervacije=timedelta(hours=form.trajanje_rezervacije.data.total_seconds() // 3600)
+            trajanje_rezervacije=form.trajanje_rezervacije.data
         )
         db.session.add(reservation)
         db.session.commit()
         flash('Table reserved successfully.', 'success')
-        return redirect(url_for('make_reservation', table_id=table_id))
+        return render_template('partials/reserve_partial.html', form=form, room=room, table=table, user=user)
 
     form.korisnik.data = user
     form.stol.data = table
     form.number_of_persons.data = table.broj_mjesta
 
-    return render_template('reserve.html', form=form, room=room, table=table)
+    return render_template('reserve.html', form=form, room=room, table=table, user=user)
 
+@app.route('/get-time-options')
+def get_time_options():
+    selected_date = request.args.get('date')
+    day_of_week = datetime.strptime(selected_date, '%Y-%m-%d').weekday() + 1  # Monday is 0 and Sunday is 6
 
+    # Fetch working hours for the selected day
+    working_hours = RadnoVrijeme.query.filter_by(dan_id=day_of_week).first()
+    if not working_hours:
+        return jsonify([])
+
+    start_time = working_hours.pocetak_radnog_vremena
+    end_time = working_hours.kraj_radnog_vremena
+
+    # Adjust start and end times
+    adjusted_start_time = (datetime.combine(datetime.today(), start_time) + timedelta(minutes=30)).time()
+    adjusted_end_time = (datetime.combine(datetime.today(), end_time) - timedelta(hours=1)).time()
+
+    # Generate time slots between adjusted_start_time and adjusted_end_time at 30-minute intervals
+    time_slots = []
+    current_time = datetime.combine(datetime.today(), adjusted_start_time)
+    end_time = datetime.combine(datetime.today(), adjusted_end_time)
+    while current_time <= end_time:
+        time_slots.append(current_time.strftime('%H:%M'))
+        current_time += timedelta(minutes=30)
+
+    return jsonify(time_slots)
 
 if __name__ == '__main__':
     with app.app_context():
