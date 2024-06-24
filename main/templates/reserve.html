@@ -30,11 +30,13 @@
         </div>
         <div class="form-group">
             {{ form.datum.label(class="form-label") }}
-            {{ form.datum(class="form-control") }}
+            {{ form.datum(class="form-control", id="datum") }}
         </div>
         <div class="form-group">
             <label for="vrijeme_rezervacije">Time of reservation:</label>
-            {{ form.vrijeme_rezervacije(class="form-control") }}
+            <select id="vrijeme_rezervacije" name="vrijeme_rezervacije" class="form-control">
+                <!-- Options will be populated by JavaScript -->
+            </select>
         </div>
         <div class="form-group">
             <label for="trajanje_rezervacije">Duration of reservation:</label>
@@ -52,4 +54,44 @@
         <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to Homepage</a>
     </form>
 </div>
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch(`/get-available-days`)
+                .then(response => response.json())
+                .then(availableDays => {
+                    const dateInput = document.getElementById('datum');
+                    dateInput.addEventListener('input', function() {
+                        const selectedDate = new Date(this.value);
+                        const dayOfWeek = selectedDate.getDay();
+                        console.log(availableDays, dayOfWeek)
+
+                        if (!availableDays.includes(dayOfWeek)) {
+                            this.setCustomValidity('The restaurant is closed on this day.');
+                        } else {
+                            this.setCustomValidity('');
+                        }
+                    });
+                });
+
+            document.getElementById('datum').addEventListener('change', function() {
+                var table_id = {{ table.id }};
+                var selected_date = this.value;
+                fetch(`/get-available-times/${table_id}?date=${selected_date}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        var timeSelect = document.getElementById('vrijeme_rezervacije');
+                        timeSelect.innerHTML = '';  // Clear existing options
+                        data.forEach(time => {
+                            var option = document.createElement('option');
+                            option.value = time;
+                            option.textContent = time;
+                            timeSelect.appendChild(option);
+                        });
+                    });
+            });
+
+            // Set minimum date for the date input to today
+            document.getElementById('datum').setAttribute('min', new Date().toISOString().split('T')[0]);
+        });
+</script>
 {% endblock %}

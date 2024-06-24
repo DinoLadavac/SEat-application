@@ -195,7 +195,7 @@ def is_overlapping(reservation, selected_datetime):
     start_time = reservation.vrijeme_rezervacije
     end_time = (datetime.combine(datetime.today(), start_time) + timedelta(hours=reservation.trajanje_rezervacije) + timedelta(minutes=30)).time()
     selected_time = selected_datetime.time()
-    return start_time <= selected_time <= end_time
+    return start_time <= selected_time < end_time
     
 @app.route('/')
 def home():
@@ -501,7 +501,6 @@ def profile():
             start_time = request.form.get(f'start_{day["id"]}')
             end_time = request.form.get(f'end_{day["id"]}')
             rv = next((rv for rv in radno_vrijeme if rv.dan_id == day['id']), None)
-            print(start_time)
 
             if closed:
                 if rv:
@@ -520,7 +519,7 @@ def profile():
                             dan_id=day['id']
                         )
                         db.session.add(new_rv)
-                db.session.commit()
+            db.session.commit()
 
         flash('Profile updated successfully')
         return redirect(url_for('profile'))
@@ -596,6 +595,61 @@ def get_time_options():
         current_time += timedelta(minutes=30)
 
     return jsonify(time_slots)
+
+@app.route('/get-available-times/<int:table_id>', methods=['GET'])
+def get_available_times(table_id):
+    selected_date = request.args.get('date')
+    if not selected_date:
+        return jsonify([])
+
+    selected_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+    day_of_week = selected_date.weekday() + 1  # Monday is 0 and Sunday is 6
+
+    # Fetch working hours for the selected day
+    working_hours = RadnoVrijeme.query.filter_by(dan_id=day_of_week).first()
+    if not working_hours:
+        return jsonify([])
+
+    start_time = working_hours.pocetak_radnog_vremena
+    end_time = working_hours.kraj_radnog_vremena
+
+    # Adjust start and end times
+    adjusted_start_time = (datetime.combine(selected_date, start_time) + timedelta(minutes=30)).time()
+    adjusted_end_time = (datetime.combine(selected_date, end_time) - timedelta(hours=1)).time()
+
+    # Generate a list of all possible times in 30-minute increments within working hours
+    current_time = datetime.combine(selected_date, adjusted_start_time)
+    end_time = datetime.combine(selected_date, adjusted_end_time)
+    possible_times = []
+    while current_time <= end_time:
+        possible_times.append(current_time)
+        current_time += timedelta(minutes=30)
+
+    # Get all reservations for the selected date and table
+    reservations = Rezervacija.query.filter_by(stol_id=table_id, datum=selected_date).all()
+
+    # Remove times that overlap with existing reservations and the 30-minute buffer after them
+    available_times = []
+    for time in possible_times:
+        is_available = True
+        for reservation in reservations:
+            reservation_start = datetime.combine(selected_date, reservation.vrijeme_rezervacije)
+            reservation_end = reservation_start + timedelta(hours=reservation.trajanje_rezervacije)
+            buffer_end = reservation_end + timedelta(minutes=30)  # 30 minutes buffer after reservation end
+            if time < buffer_end and (time + timedelta(minutes=30)) > reservation_start:
+                is_available = False
+                break
+        if is_available:
+            available_times.append(time.strftime('%H:%M'))
+
+    return jsonify(available_times)
+
+@app.route('/get-available-days', methods=['GET'])
+def get_available_days():
+    available_days = RadnoVrijeme.query.all()
+    available_day_ids = [day.dan_id for day in available_days]
+    return jsonify(available_day_ids)
+
 
 if __name__ == '__main__':
     with app.app_context():

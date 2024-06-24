@@ -66,4 +66,6 @@
         const url = `/room/{{current_prostorija_id}}/guest_layout?date=${date}&time=${time}`;
         htmx.ajax('GET', url, { target: '#guest-layout' });
     });
+    // Set minimum date for the date input to today
+    document.getElementById('date').setAttribute('min', new Date().toISOString().split('T')[0]);
 </script>
