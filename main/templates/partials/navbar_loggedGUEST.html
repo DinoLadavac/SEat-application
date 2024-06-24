@@ -8,7 +8,7 @@
             <img src="{{ url_for('static', filename='images/mail.svg') }}" alt="Mail Icon">
         </a>
         <div class="dropdown">
-            <a class="btn2" href="#" id="profile" role="button"  aria-haspopup="true" aria-expanded="false">
+            <a class="btn2"  href="{{ url_for('guest_profile') }}" id="profile" role="button"  aria-haspopup="true" aria-expanded="false">
                 <img src="{{ url_for('static', filename='images/person.svg') }}" alt="Profile Icon">
             </a>
         </div>

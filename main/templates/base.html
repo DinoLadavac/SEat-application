@@ -157,7 +157,31 @@
             align-items: center;
             height: 100%;
         }
-    </style>
+        .reservation-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 18px;
+        text-align: left;
+        }
+        .reservation-table th, .reservation-table td {
+            padding: 12px 15px;
+        }
+        .reservation-table thead th {
+            background-color: #5061F7;
+            color: white;
+            font-weight: bold;
+        }
+        .reservation-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+        .reservation-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+        .reservation-table tbody tr:last-of-type {
+            border-bottom: 2px solid #5061F7;
+        }
+        </style>
 </head>
 <body id="main-body">
     {% block navbar %}

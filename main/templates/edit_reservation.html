@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" id="reserve">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+                {% if category in ["danger", "success", "error"] %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+    <h2>Edit Reservation</h2>
+    <form hx-post="{{ url_for('edit_reservation', reservation_id=reservation.id) }}" hx-swap="outerHTML" hx-target="#reserve">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="room">Restaurant room:</label>
+            <input type="text" id="room" class="form-control" value="{{ room.naziv_prostorije }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="table">Table ID:</label>
+            <input type="text" id="table" class="form-control" value="{{ table.id }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="number_of_persons">Table for:</label>
+            <input type="text" id="number_of_persons" class="form-control" value="{{ table.broj_mjesta }} persons" readonly>
+        </div>
+        <div class="form-group">
+            {{ form.datum.label(class="form-label") }}
+            {{ form.datum(class="form-control", id="datum") }}
+        </div>
+        <div class="form-group">
+            <label for="vrijeme_rezervacije">Time of reservation:</label>
+            <select id="vrijeme_rezervacije" name="vrijeme_rezervacije" class="form-control">
+                <option value="{{ reservation.vrijeme_rezervacije }}">{{ reservation.vrijeme_rezervacije.strftime('%H:%M') }}</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="trajanje_rezervacije">Duration of reservation:</label>
+            {{ form.trajanje_rezervacije(class="form-control") }}
+        </div>
+        <div class="form-group">
+            <label for="contact">My Contact:</label>
+            <input type="email" id="contact" class="form-control" value="{{ user.email }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="phone">My number (optional):</label>
+            <input type="text" id="phone" name="phone" class="form-control" value="{{ reservation.phone if reservation.phone else '' }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Save changes</button>
+        <a href="{{ url_for('guest_profile') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch(`/get-available-days`)
+            .then(response => response.json())
+            .then(availableDays => {
+                const dateInput = document.getElementById('datum');
+                dateInput.addEventListener('input', function() {
+                    const selectedDate = new Date(this.value);
+                    const dayOfWeek = selectedDate.getDay();
+                    if (!availableDays.includes(dayOfWeek)) {
+                        this.setCustomValidity('The restaurant is closed on this day.');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                });
+            });
+
+        // Function to fetch available times
+        function fetchAvailableTimes() {
+            var table_id = {{ table.id }};
+            var selected_date = document.getElementById('datum').value;
+            fetch(`/get-available-times/${table_id}?date=${selected_date}`)
+                .then(response => response.json())
+                .then(data => {
+                    var timeSelect = document.getElementById('vrijeme_rezervacije');
+                    timeSelect.innerHTML = '';  // Clear existing options
+                    data.forEach(time => {
+                        var option = document.createElement('option');
+                        option.value = time;
+                        option.textContent = time;
+                        timeSelect.appendChild(option);
+                    });
+                });
+        }
+
+        // Fetch available times on date change
+        document.getElementById('datum').addEventListener('change', fetchAvailableTimes);
+
+        // Set minimum date for the date input to today
+        document.getElementById('datum').setAttribute('min', new Date().toISOString().split('T')[0]);
+
+        // Fetch available times on initial load
+        fetchAvailableTimes();
+    });
+</script>
+{% endblock %}

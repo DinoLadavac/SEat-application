@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mt-5">All Reservations</h2>
+        <a href="/" class="btn btn-secondary">Go to Homepage</a>
+    </div>
+    {% if reservations %}
+        <table class="reservation-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Restaurant</th>
+                    <th>Room</th>
+                    <th>Table Number</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Duration (hours)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in reservations %}
+                    <tr>
+                        <td>{{ reservation.korisnik.email }}</td>
+                        <td>{{ reservation.stol.prostorija.restoran.naziv_restorana }}</td>
+                        <td>{{ reservation.stol.prostorija.naziv_prostorije }}</td>
+                        <td>{{ reservation.stol.broj_stola }}</td>
+                        <td>{{ reservation.datum.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ reservation.vrijeme_rezervacije.strftime('%H:%M') }}</td>
+                        <td>{{ reservation.trajanje_rezervacije }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>There are no reservations.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+<style>
+    .reservation-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 18px;
+        text-align: left;
+    }
+    .reservation-table th, .reservation-table td {
+        padding: 12px 15px;
+    }
+    .reservation-table thead th {
+        background-color: #5061F7;
+        color: white;
+        font-weight: bold;
+    }
+    .reservation-table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+    .reservation-table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+    .reservation-table tbody tr:last-of-type {
+        border-bottom: 2px solid #5061F7;
+    }
+</style>

@@ -569,6 +569,36 @@ def make_reservation(table_id):
 
     return render_template('reserve.html', form=form, room=room, table=table, user=user)
 
+@app.route('/edit_reservation/<int:reservation_id>', methods=['GET', 'POST'])
+def edit_reservation(reservation_id):
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+
+    reservation = Rezervacija.query.get_or_404(reservation_id)
+    user = Korisnik.query.get(session['user_id'])
+    
+    if user.id != reservation.korisnik_id:
+        flash('You are not authorized to edit this reservation.', 'danger')
+        return redirect(url_for('profile'))
+
+    table = reservation.stol
+    room = table.prostorija
+    form = RezervacijaForm(obj=reservation)
+
+    if request.method == 'POST':
+        reservation.datum = form.datum.data
+        reservation.vrijeme_rezervacije = form.vrijeme_rezervacije.data
+        reservation.trajanje_rezervacije = form.trajanje_rezervacije.data
+        db.session.commit()
+        flash('Reservation updated successfully.', 'success')
+        return render_template('partials/edit_reservation_partial.html', form=form, room=room, table=table, user=user, reservation=reservation)
+
+    form.korisnik.data = user
+    form.stol.data = table
+    form.number_of_persons.data = table.broj_mjesta
+
+    return render_template('edit_reservation.html', form=form, room=room, table=table, user=user, reservation=reservation)
+
 @app.route('/get-time-options')
 def get_time_options():
     selected_date = request.args.get('date')
@@ -650,6 +680,21 @@ def get_available_days():
     available_day_ids = [day.dan_id for day in available_days]
     return jsonify(available_day_ids)
 
+@app.route('/guest_profile', methods=['GET'])
+def guest_profile():
+    user_id = session['user_id'] # Assuming you're using Flask-Login to manage user sessions
+    reservations = Rezervacija.query.filter_by(korisnik_id=user_id).all()
+    return render_template('guest_profile.html', reservations=reservations)
+
+@app.route('/all_reservations', methods=['GET'])
+def all_reservations():
+    user = Korisnik.query.get(session['user_id'])
+    if user.tip_korisnika.naziv_tipa_korisnika != 'Restaurant Owner':
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('home'))
+
+    reservations = Rezervacija.query.all()
+    return render_template('all_reservations.html', reservations=reservations)
 
 if __name__ == '__main__':
     with app.app_context():
