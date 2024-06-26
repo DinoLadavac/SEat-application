@@ -611,9 +611,10 @@ def delete_reservation(reservation_id):
 
     db.session.delete(reservation)
     db.session.commit()
-    flash('Reservation deleted successfully.', 'success')
+    reservations = Rezervacija.query.all()
+    flash('Reservation deleted successfully.')
 
-    return render_template("partials/table_of_reservations.html")
+    return render_template("partials/table_of_reservations.html", reservations=reservations)
     
     
 @app.route('/get-time-options')

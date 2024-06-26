@@ -61,7 +61,10 @@
                     const dateInput = document.getElementById('datum');
                     dateInput.addEventListener('input', function() {
                         const selectedDate = new Date(this.value);
-                        const dayOfWeek = selectedDate.getDay();
+                        var dayOfWeek = selectedDate.getDay();
+                        if (dayOfWeek == 0) {
+                            dayOfWeek = 7
+                        }
                         console.log(availableDays, dayOfWeek)
 
                         if (!availableDays.includes(dayOfWeek)) {
