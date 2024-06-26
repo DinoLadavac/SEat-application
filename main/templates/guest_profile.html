@@ -19,7 +19,7 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="reservations_id">
                 {% for reservation in reservations %}
                     <tr>
                         <td>{{ reservation.stol.prostorija.restoran.naziv_restorana }}</td>
@@ -30,6 +30,7 @@
                         <td>{{ reservation.trajanje_rezervacije }}</td>
                         <td>
                             <a href="{{ url_for('edit_reservation', reservation_id=reservation.id) }}" class="btn btn-primary btn-sm">Edit</a>
+                            <a hx-delete="{{ url_for('delete_reservation', reservation_id=reservation.id) }}" hx-target = "#reservations_id" class="btn btn-secondary btn-sm">Delete</a>
                         </td>
                     </tr>
                 {% endfor %}

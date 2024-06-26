@@ -599,6 +599,23 @@ def edit_reservation(reservation_id):
 
     return render_template('edit_reservation.html', form=form, room=room, table=table, user=user, reservation=reservation)
 
+
+@app.route('/delete_reservation/<int:reservation_id>', methods=['DELETE'])
+def delete_reservation(reservation_id):
+    if 'logged_in' not in session:
+        flash('You need to be logged in to delete a reservation.', 'danger')
+        return redirect(url_for('login'))
+
+    reservation = Rezervacija.query.get_or_404(reservation_id)
+    user = Korisnik.query.get(session['user_id'])
+
+    db.session.delete(reservation)
+    db.session.commit()
+    flash('Reservation deleted successfully.', 'success')
+
+    return render_template("partials/table_of_reservations.html")
+    
+    
 @app.route('/get-time-options')
 def get_time_options():
     selected_date = request.args.get('date')

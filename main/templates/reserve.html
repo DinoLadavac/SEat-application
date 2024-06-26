@@ -29,13 +29,12 @@
             <input type="text" id="number_of_persons" class="form-control" value="{{ table.broj_mjesta }} persons" readonly>
         </div>
         <div class="form-group">
-            {{ form.datum.label(class="form-label") }}
+            <label for="datum">Date:</label>
             {{ form.datum(class="form-control", id="datum") }}
         </div>
         <div class="form-group">
             <label for="vrijeme_rezervacije">Time of reservation:</label>
             <select id="vrijeme_rezervacije" name="vrijeme_rezervacije" class="form-control">
-                <!-- Options will be populated by JavaScript -->
             </select>
         </div>
         <div class="form-group">
