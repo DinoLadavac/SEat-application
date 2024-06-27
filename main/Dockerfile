@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 
 EXPOSE 4000
 
-CMD python app.py
+CMD ["sh", "-c", "sleep 5 && python app.py"]

@@ -25,7 +25,8 @@ services:
       - FLASK_ENV=development
     depends_on:
       - postgres_db
-
+    volumes: 
+      - ./main:/app
 
 volumes:
   pgdata:
