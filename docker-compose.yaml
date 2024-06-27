@@ -17,21 +17,14 @@ services:
     container_name: flask_app-Seatapp
     build: ./main
     ports: 
-      - "4000:4000"
+      - "5000:50505"
     environment:
       - DB_URL=postgresql://postgres:postgres@postgres_db:5432/postgres
-      - DEBUG=True
+      - DEBUGGER=True
       - FLASK_DEBUG=1  # Enable debug mode
       - FLASK_ENV=development
     depends_on:
       - postgres_db
-    volumes: 
-      - ${WEBAPP_STORAGE_HOME}/site/wwwroot/main:/app
 
 volumes:
   pgdata:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${WEBAPP_STORAGE_HOME}/pgdata
-      o: bind

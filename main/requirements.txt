@@ -5,3 +5,4 @@ flask-admin
 flask-wtf
 wtforms_sqlalchemy
 Jinja2
+gunicorn
