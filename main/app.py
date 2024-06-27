@@ -20,7 +20,7 @@ from sqlalchemy.sql import func, and_, or_
 app = Flask(__name__)
 
 # Ensure the DB_URL environment variable is set, else use a default
-db_url = environ.get('DB_URL', 'sqlite:///test.db')
+db_url = environ.get('DB_URL')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SECRET_KEY'] = 'top-secret!'
 
