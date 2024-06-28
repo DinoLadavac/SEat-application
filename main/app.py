@@ -716,7 +716,7 @@ def all_reservations():
 
 if __name__ == '__main__':
     with app.app_context():
-        db.drop_all()  # Ukloni ili komentiraj ovu liniju
+        #db.drop_all()  # Ukloni ili komentiraj ovu liniju
         db.create_all()
         if Datum.query.count() == 0:
             days_of_week = [
@@ -750,4 +750,4 @@ if __name__ == '__main__':
             db.session.add_all([prostorija1, prostorija2])
             db.session.commit()
 
-    app.run()
+    app.run(debug=True, host='0.0.0.0', port=4000)

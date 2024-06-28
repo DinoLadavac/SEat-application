@@ -1,11 +1,11 @@
 FROM python:3.10-slim-buster
 
-WORKDIR /app
+WORKDIR app
 
-COPY . .
+COPY * /app/
 
 RUN pip install -r requirements.txt
 
-EXPOSE 50505
+EXPOSE 4000
 
-ENTRYPOINT ["gunicorn", "app:app"]
+CMD python app.py
