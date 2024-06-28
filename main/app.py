@@ -611,7 +611,7 @@ def delete_reservation(reservation_id):
 
     db.session.delete(reservation)
     db.session.commit()
-    reservations = Rezervacija.query.all()
+    reservations = Rezervacija.query.filter_by(korisnik_id=session['user_id']).all()
     flash('Reservation deleted successfully.')
 
     return render_template("partials/table_of_reservations.html", reservations=reservations)
